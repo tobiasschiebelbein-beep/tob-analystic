@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../')));
 
 const dbPath = path.join(__dirname, 'gymmanager.db');
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -23,25 +24,6 @@ db.serialize(() => {
         password_hash TEXT NOT NULL, 
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
-
-    /* Rutas API de Autenticación... */
-    app.post('/api/auth/register', (req, res) => {
-        const { username, password } = req.body;
-        if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
-        const id = 'u_' + uuidv4().slice(0, 8);
-        db.run(`INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)`, [username, password, id], function(err) {
-            if (err) return res.status(400).json({ error: 'El usuario ya existe' });
-            res.json({ success: true, id, username });
-        });
-    });
-
-    app.post('/api/auth/login', (req, res) => {
-        const { username, password } = req.body;
-        db.get(`SELECT * FROM users WHERE username = ? AND password_hash = ?`, [username, password], (err, user) => {
-            if (err || !user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
-            res.json({ success: true, user: { id: user.id, username: user.username } });
-        });
-    });
 
     db.run(`CREATE TABLE IF NOT EXISTS plans (
         id TEXT PRIMARY KEY, 
@@ -131,6 +113,25 @@ function seedInitialData() {
     db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_403', 'Mantenimiento de Cintas de Correr', 'Mantenimiento', 40000, '2026-08-15', 'PAGADO']);
     db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_404', 'Insumos de Limpieza y Toallas', 'Insumos', 25000, '2026-08-18', 'PENDIENTE']);
 }
+
+/* Rutas API de Autenticación... */
+app.post('/api/auth/register', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+    const id = 'u_' + uuidv4().slice(0, 8);
+    db.run(`INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)`, [id, username, password], function(err) {
+        if (err) return res.status(400).json({ error: 'El usuario ya existe' });
+        res.json({ success: true, id, username });
+    });
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    db.get(`SELECT * FROM users WHERE username = ? AND password_hash = ?`, [username, password], (err, user) => {
+        if (err || !user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+        res.json({ success: true, user: { id: user.id, username: user.username } });
+    });
+});
 
 /* Rutas API de Planes... */
 app.get('/api/plans', (req, res) => {
@@ -328,22 +329,22 @@ app.get('/api/dashboard/stats', (req, res) => {
     };
 
     const stats = {};
-    db.get(queries.totalMembers, [], (err, row) => {
-        stats.totalMembers = row ? row.count : 0;
-        db.get(queries.activeMembers, [todayStr], (err, row) => {
-            stats.activeMembers = row ? row.count : 0;
-            db.get(queries.expiringSoonMembers, [todayStr, todayStr], (err, row) => {
-                stats.expiringSoonMembers = row ? row.count : 0;
-                db.get(queries.expiredMembers, [todayStr], (err, row) => {
-                    stats.expiredMembers = row ? row.count : 0;
-                    db.get(queries.totalIncome, [], (err, row) => {
-                        stats.totalIncome = row && row.total ? row.total : 0;
-                        db.get(queries.totalExpenses, [], (err, row) => {
-                            stats.totalExpenses = row && row.total ? row.total : 0;
-                            db.get(queries.pendingExpenses, [], (err, row) => {
-                                stats.pendingExpenses = row && row.total ? row.total : 0;
-                                db.get(queries.recentCheckins, [], (err, row) => {
-                                    stats.recentCheckins = row ? row.count : 0;
+    db.get(queries.totalMembers, [], (err, row1) => {
+        stats.totalMembers = row1 ? row1.count : 0;
+        db.get(queries.activeMembers, [todayStr], (err, row2) => {
+            stats.activeMembers = row2 ? row2.count : 0;
+            db.get(queries.expiringSoonMembers, [todayStr, todayStr], (err, row3) => {
+                stats.expiringSoonMembers = row3 ? row3.count : 0;
+                db.get(queries.expiredMembers, [todayStr], (err, row4) => {
+                    stats.expiredMembers = row4 ? row4.count : 0;
+                    db.get(queries.totalIncome, [], (err, row5) => {
+                        stats.totalIncome = row5 && row5.total ? row5.total : 0;
+                        db.get(queries.totalExpenses, [], (err, row6) => {
+                            stats.totalExpenses = row6 && row6.total ? row6.total : 0;
+                            db.get(queries.pendingExpenses, [], (err, row7) => {
+                                stats.pendingExpenses = row7 && row7.total ? row7.total : 0;
+                                db.get(queries.recentCheckins, [], (err, row8) => {
+                                    stats.recentCheckins = row8 ? row8.count : 0;
                                     res.json(stats);
                                 });
                             });
@@ -352,7 +353,8 @@ app.get('/api/dashboard/stats', (req, res) => {
                 });
             });
         });
-app.use(express.static(path.join(__dirname, '../')));
+    });
+});
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
