@@ -523,9 +523,6 @@
                     <button class="btn btn-logout" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; margin-left: 0.4rem;" onclick="logoutUser()" title="Cerrar Sesión">
                         <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
                     </button>
-                </div>
-
-                <button class="btn btn-secondary" onclick="exportSQLDump()"><i class="fa-solid fa-database"></i> Exportar SQL</button>
                 <button class="btn btn-primary" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Nuevo Socio</button>
             </div>
         </header>
@@ -1540,28 +1537,6 @@
         function toggleExpense(id) {
             const exp = dbState.expenses.find(x => x.id === id);
             if (exp) { exp.status = exp.status === 'PAGADO' ? 'PENDIENTE' : 'PAGADO'; saveState(); }
-        }
-
-        function exportSQLDump() {
-            let sql = `-- FitMetrics SQLite Database Dump\n-- Generated: ${new Date().toISOString()}\n\n`;
-            sql += `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
-            sql += `CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, days INTEGER NOT NULL DEFAULT 30, description TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
-            sql += `CREATE TABLE IF NOT EXISTS members (id TEXT PRIMARY KEY, name TEXT NOT NULL, dni TEXT UNIQUE NOT NULL, phone TEXT, plan_id TEXT, start_date DATE NOT NULL, expire_date DATE NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
-            sql += `CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, member_id TEXT NOT NULL, plan_id TEXT NOT NULL, amount REAL NOT NULL, method TEXT NOT NULL, payment_date DATETIME DEFAULT CURRENT_TIMESTAMP, note TEXT, FOREIGN KEY (member_id) REFERENCES members(id), FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
-            sql += `CREATE TABLE IF NOT EXISTS expenses (id TEXT PRIMARY KEY, title TEXT NOT NULL, category TEXT NOT NULL, amount REAL NOT NULL, expense_date DATE NOT NULL, status TEXT NOT NULL DEFAULT 'PAGADO', created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
-            sql += `CREATE TABLE IF NOT EXISTS access_logs (id TEXT PRIMARY KEY, member_id TEXT, dni TEXT NOT NULL, status TEXT NOT NULL, accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n\n`;
-
-            dbState.users.forEach(u => { sql += `INSERT INTO users VALUES ('${u.id}', '${u.username.replace(/'/g,"''")}', '${u.password_hash}', CURRENT_TIMESTAMP);\n`; });
-            dbState.plans.forEach(p => { sql += `INSERT INTO plans VALUES ('${p.id}', '${p.name.replace(/'/g,"''")}', ${p.price}, ${p.days}, '${(p.description||'').replace(/'/g,"''")}', CURRENT_TIMESTAMP);\n`; });
-            dbState.members.forEach(m => { sql += `INSERT INTO members VALUES ('${m.id}', '${m.name.replace(/'/g,"''")}', '${m.dni}', '${m.phone||''}', '${m.plan_id}', '${m.start_date}', '${m.expire_date}', CURRENT_TIMESTAMP);\n`; });
-            dbState.payments.forEach(p => { sql += `INSERT INTO payments VALUES ('${p.id}', '${p.member_id}', '${p.plan_id}', ${p.amount}, '${p.method}', '${p.date}', '${(p.note||'').replace(/'/g,"''")}');\n`; });
-            dbState.expenses.forEach(e => { sql += `INSERT INTO expenses VALUES ('${e.id}', '${e.title.replace(/'/g,"''")}', '${e.category}', ${e.amount}, '${e.date}', '${e.status}', CURRENT_TIMESTAMP);\n`; });
-
-            const blob = new Blob([sql], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'fitmetrics_dump.sql';
-            a.click();
         }
 
         window.onload = function() {
