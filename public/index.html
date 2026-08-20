@@ -450,7 +450,7 @@
                 <div class="glass-card">
                     <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-receipt"></i> Historial de Cobranzas</div>
                     <table>
-                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th><th>Acción</th></tr></thead>
                         <tbody id="payments-table-body"></tbody>
                     </table>
                 </div>
@@ -476,8 +476,9 @@
     <!-- MODALS -->
     <div id="modal-member" class="modal-backdrop">
         <div class="modal-box">
-            <h3 style="margin-bottom: 1rem;">Nuevo Socio</h3>
+            <h3 id="member-modal-title" style="margin-bottom: 1rem;">Nuevo Socio</h3>
             <form onsubmit="saveMember(event)">
+                <input type="hidden" id="m-id">
                 <div class="form-group"><label>Nombre Completo</label><input type="text" id="m-name" class="form-control" required></div>
                 <div class="form-row">
                     <div class="form-group"><label>DNI</label><input type="text" id="m-dni" class="form-control" required></div>
@@ -536,8 +537,9 @@
 
     <div id="modal-expense" class="modal-backdrop">
         <div class="modal-box">
-            <h3 style="margin-bottom: 1rem;">Nuevo Gasto</h3>
+            <h3 id="expense-modal-title" style="margin-bottom: 1rem;">Nuevo Gasto</h3>
             <form onsubmit="saveExpense(event)">
+                <input type="hidden" id="exp-id">
                 <div class="form-group"><label>Concepto</label><input type="text" id="exp-title" class="form-control" required></div>
                 <div class="form-row">
                     <div class="form-group"><label>Categoría</label>
@@ -879,10 +881,16 @@
                         <td>${m.start_date}</td>
                         <td><strong>${m.expire_date}</strong></td>
                         <td><span class="status-badge ${status}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${status}</span></td>
-                        <td><button class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')">Renovar</button></td>
+                        <td>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membresía"><i class="fa-solid fa-rotate-right"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteMember('${m.id}')" title="Eliminar Socio"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
                     </tr>
                 `;
-            }).join('');
+            }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay socios registrados. ¡Haz clic en "Nuevo Socio" para empezar!</td></tr>';
 
             // Plans
             document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
@@ -908,8 +916,9 @@
                     <td><strong style="color:var(--success);">$${p.amount.toLocaleString('es-AR')}</strong></td>
                     <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
                     <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
+                    <td><button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Cobro"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>
-            `).join('');
+            `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay cobranzas registradas este mes.</td></tr>';
 
             // Expenses
             document.getElementById('expenses-table-body').innerHTML = dbState.expenses.map(e => `
@@ -919,9 +928,15 @@
                     <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
                     <td><strong style="color:var(--danger);">$${e.amount.toLocaleString('es-AR')}</strong></td>
                     <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
-                    <td><button class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')">Cambiar a ${e.status==='PAGADO'?'PENDIENTE':'PAGADO'}</button></td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem;">
+                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
+                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
                 </tr>
-            `).join('');
+            `).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados este mes. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
 
             // Select Options
             const planOpts = dbState.plans.map(p => `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')})</option>`).join('');
@@ -974,9 +989,27 @@
         function openModal(id) { document.getElementById(id).classList.add('open'); }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-        function openMemberModal() {
-            document.getElementById('m-start').value = new Date().toISOString().split('T')[0];
-            calculateExpireDate();
+        function openMemberModal(memberId) {
+            if (memberId) {
+                const m = dbState.members.find(x => x.id === memberId);
+                if (!m) return;
+                document.getElementById('member-modal-title').innerText = 'Editar Socio';
+                document.getElementById('m-id').value = m.id;
+                document.getElementById('m-name').value = m.name;
+                document.getElementById('m-dni').value = m.dni;
+                document.getElementById('m-phone').value = m.phone || '';
+                document.getElementById('m-plan').value = m.plan_id;
+                document.getElementById('m-start').value = m.start_date;
+                document.getElementById('m-expire').value = m.expire_date;
+            } else {
+                document.getElementById('member-modal-title').innerText = 'Nuevo Socio';
+                document.getElementById('m-id').value = '';
+                document.getElementById('m-name').value = '';
+                document.getElementById('m-dni').value = '';
+                document.getElementById('m-phone').value = '';
+                document.getElementById('m-start').value = new Date().toISOString().split('T')[0];
+                calculateExpireDate();
+            }
             openModal('modal-member');
         }
 
@@ -990,19 +1023,47 @@
             document.getElementById('m-expire').value = d.toISOString().split('T')[0];
         }
 
-        function saveMember(e) {
+        async function saveMember(e) {
             e.preventDefault();
-            const id = 'm_' + Math.random().toString(36).substr(2, 6);
-            dbState.members.push({
-                id,
-                name: document.getElementById('m-name').value,
-                dni: document.getElementById('m-dni').value,
-                phone: document.getElementById('m-phone').value,
-                plan_id: document.getElementById('m-plan').value,
-                start_date: document.getElementById('m-start').value,
-                expire_date: document.getElementById('m-expire').value
-            });
+            const id = document.getElementById('m-id').value;
+            const name = document.getElementById('m-name').value;
+            const dni = document.getElementById('m-dni').value;
+            const phone = document.getElementById('m-phone').value;
+            const plan_id = document.getElementById('m-plan').value;
+            const start_date = document.getElementById('m-start').value;
+            const expire_date = document.getElementById('m-expire').value;
+
+            if (id) {
+                const m = dbState.members.find(x => x.id === id);
+                if (m) {
+                    m.name = name; m.dni = dni; m.phone = phone; m.plan_id = plan_id;
+                    m.start_date = start_date; m.expire_date = expire_date;
+                }
+            } else {
+                const newId = 'm_' + Math.random().toString(36).substr(2, 6);
+                dbState.members.push({ id: newId, name, dni, phone, plan_id, start_date, expire_date });
+                try {
+                    await fetch(`${API_URL}/members`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, dni, phone, plan_id, start_date, expire_date })
+                    });
+                } catch(err) {}
+            }
             closeModal('modal-member');
+            saveState();
+        }
+
+        async function deleteMember(id) {
+            if (!confirm('¿Estás seguro de eliminar este socio?')) return;
+            dbState.members = dbState.members.filter(m => m.id !== id);
+            try { await fetch(`${API_URL}/members/${id}`, { method: 'DELETE' }); } catch(e) {}
+            saveState();
+        }
+
+        function deletePayment(id) {
+            if (!confirm('¿Estás seguro de eliminar este registro de cobro?')) return;
+            dbState.payments = dbState.payments.filter(p => p.id !== id);
             saveState();
         }
 
@@ -1124,22 +1185,63 @@
             saveState();
         }
 
-        function openExpenseModal() {
-            document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+        function openExpenseModal(expenseId) {
+            if (expenseId) {
+                const exp = dbState.expenses.find(x => x.id === expenseId);
+                if (!exp) return;
+                document.getElementById('expense-modal-title').innerText = 'Editar Gasto';
+                document.getElementById('exp-id').value = exp.id;
+                document.getElementById('exp-title').value = exp.title;
+                document.getElementById('exp-category').value = exp.category;
+                document.getElementById('exp-amount').value = exp.amount;
+                document.getElementById('exp-date').value = exp.date;
+                document.getElementById('exp-status').value = exp.status;
+            } else {
+                document.getElementById('expense-modal-title').innerText = 'Nuevo Gasto';
+                document.getElementById('exp-id').value = '';
+                document.getElementById('exp-title').value = '';
+                document.getElementById('exp-category').value = 'Alquiler';
+                document.getElementById('exp-amount').value = '';
+                document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('exp-status').value = 'PAGADO';
+            }
             openModal('modal-expense');
         }
 
-        function saveExpense(e) {
+        async function saveExpense(e) {
             e.preventDefault();
-            dbState.expenses.unshift({
-                id: 'exp_' + Math.random().toString(36).substr(2,6),
-                title: document.getElementById('exp-title').value,
-                category: document.getElementById('exp-category').value,
-                amount: parseFloat(document.getElementById('exp-amount').value),
-                date: document.getElementById('exp-date').value,
-                status: document.getElementById('exp-status').value
-            });
+            const id = document.getElementById('exp-id').value;
+            const title = document.getElementById('exp-title').value;
+            const category = document.getElementById('exp-category').value;
+            const amount = parseFloat(document.getElementById('exp-amount').value);
+            const date = document.getElementById('exp-date').value;
+            const status = document.getElementById('exp-status').value;
+
+            if (id) {
+                const exp = dbState.expenses.find(x => x.id === id);
+                if (exp) {
+                    exp.title = title; exp.category = category;
+                    exp.amount = amount; exp.date = date; exp.status = status;
+                }
+            } else {
+                const newId = 'exp_' + Math.random().toString(36).substr(2,6);
+                dbState.expenses.unshift({ id: newId, title, category, amount, date, status });
+                try {
+                    await fetch(`${API_URL}/expenses`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, category, amount, date, status })
+                    });
+                } catch(err) {}
+            }
             closeModal('modal-expense');
+            saveState();
+        }
+
+        async function deleteExpense(id) {
+            if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
+            dbState.expenses = dbState.expenses.filter(e => e.id !== id);
+            try { await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }); } catch(e) {}
             saveState();
         }
 
@@ -1153,7 +1255,7 @@
             sql += `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
             sql += `CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, days INTEGER NOT NULL DEFAULT 30, description TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
             sql += `CREATE TABLE IF NOT EXISTS members (id TEXT PRIMARY KEY, name TEXT NOT NULL, dni TEXT UNIQUE NOT NULL, phone TEXT, plan_id TEXT, start_date DATE NOT NULL, expire_date DATE NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
-            sql += `CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, member_id TEXT NOT NULL, plan_id TEXT NOT NULL, amount REAL NOT NULL, method TEXT NOT NULL, payment_date DATETIME DEFAULT CURRENT_TIMESTAMP, text, FOREIGN KEY (member_id) REFERENCES members(id), FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
+            sql += `CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, member_id TEXT NOT NULL, plan_id TEXT NOT NULL, amount REAL NOT NULL, method TEXT NOT NULL, payment_date DATETIME DEFAULT CURRENT_TIMESTAMP, note TEXT, FOREIGN KEY (member_id) REFERENCES members(id), FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
             sql += `CREATE TABLE IF NOT EXISTS expenses (id TEXT PRIMARY KEY, title TEXT NOT NULL, category TEXT NOT NULL, amount REAL NOT NULL, expense_date DATE NOT NULL, status TEXT NOT NULL DEFAULT 'PAGADO', created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
             sql += `CREATE TABLE IF NOT EXISTS access_logs (id TEXT PRIMARY KEY, member_id TEXT, dni TEXT NOT NULL, status TEXT NOT NULL, accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n\n`;
 
