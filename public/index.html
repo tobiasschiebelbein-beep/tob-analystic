@@ -262,6 +262,44 @@
         .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .plan-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-top: 4px solid var(--primary);
+            border-radius: 20px;
+            padding: 1.75rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            border-top-color: var(--secondary);
+            box-shadow: 0 20px 45px rgba(6, 182, 212, 0.18);
+        }
+
+        .plan-price-tag {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 0.9rem 1.2rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -1060,17 +1098,22 @@
             // Plans
             document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
                 <div class="plan-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
-                        <div style="font-weight:700; font-size:1.1rem; color:#fff;">${p.name}</div>
-                        <div style="display:flex; gap:0.4rem;">
-                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.85rem;">
+                            <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
+                            <div style="display:flex; gap:0.4rem; flex-shrink:0;">
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                         </div>
+                        <div style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${p.description || 'Sin descripción'}</div>
                     </div>
-                    <div style="font-size:0.85rem; color:var(--text-muted);">${p.description || 'Sin descripción'}</div>
-                    <div class="plan-price" style="margin-top:0.75rem;">$${p.price.toLocaleString('es-AR')} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:400;">/ ${p.days}d</span></div>
+                    <div class="plan-price-tag">
+                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Valor</span>
+                        <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${p.price.toLocaleString('es-AR')} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days}d</span></div>
+                    </div>
                 </div>
-            `).join('');
+            `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ¡Haz clic en "Crear Nuevo Plan" para añadir uno!</div>';
 
             // Payments (Ingresos)
             document.getElementById('payments-table-body').innerHTML = dbState.payments.map(p => `
