@@ -269,6 +269,16 @@ app.delete('/api/expenses/:id', (req, res) => {
     });
 });
 
+app.post('/api/db/reset', (req, res) => {
+    db.serialize(() => {
+        db.run(`DELETE FROM members`);
+        db.run(`DELETE FROM payments`);
+        db.run(`DELETE FROM expenses`);
+        db.run(`DELETE FROM access_logs`);
+    });
+    res.json({ success: true, message: 'Base de datos reiniciada a 0' });
+});
+
 /* Ruta de Validación de Acceso... */
 app.post('/api/access/check', (req, res) => {
     const { query } = req.body;

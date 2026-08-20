@@ -361,6 +361,7 @@
                 </div>
 
                 <button class="btn btn-secondary" onclick="exportSQLDump()"><i class="fa-solid fa-database"></i> Exportar SQL</button>
+                <button class="btn btn-secondary" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="resetDatabaseToZero()" title="Borrar socios y movimientos para empezar desde cero"><i class="fa-solid fa-trash-can"></i> Empezar a 0</button>
                 <button class="btn btn-warning" onclick="openInflationModal()"><i class="fa-solid fa-bolt"></i> Ajustar Inflación</button>
                 <button class="btn btn-primary" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Nuevo Socio</button>
             </div>
@@ -624,6 +625,23 @@
         function saveState() {
             localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
             renderAll();
+        }
+
+        async function resetDatabaseToZero() {
+            if (confirm('⚠️ ¿Estás seguro de vaciar la base de datos?\n\nEsto borrará todos los socios, pagos, gastos e historial predeterminados para que puedas cargar tus propios datos reales desde cero.')) {
+                dbState.members = [];
+                dbState.payments = [];
+                dbState.expenses = [];
+                dbState.access_logs = [];
+                saveState();
+
+                try {
+                    await fetch(`${API_URL}/db/reset`, { method: 'POST' });
+                } catch(err) {}
+
+                alert('¡Sistema vaciado con éxito! Ahora puedes empezar a cargar tus datos reales.');
+                renderAll();
+            }
         }
 
         /* Authentication System Functions */
