@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>TOB Analystic - Plataforma de Gestión y Analítica de Gimnasios</title>
+    <title>FitMetrics - Plataforma de Gestión y Analítica de Gimnasios</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -434,7 +434,7 @@
         <div class="auth-card">
             <div class="auth-brand">
                 <div class="auth-brand-icon"><i class="fa-solid fa-chart-line"></i></div>
-                <h2>TOB Analystic</h2>
+                <h2>FitMetrics</h2>
             </div>
             <p style="font-size: 0.88rem; color: var(--text-muted);">Plataforma de Inteligencia y Gestión</p>
 
@@ -487,7 +487,7 @@
         <div class="brand">
             <div class="brand-icon"><i class="fa-solid fa-chart-line"></i></div>
             <div class="brand-text">
-                <h1>TOB Analystic</h1>
+                <h1>FitMetrics</h1>
                 <p>Gym Intelligence</p>
             </div>
         </div>
@@ -504,7 +504,7 @@
         <div class="sidebar-footer">
             <div class="status-badge-live">
                 <div class="pulse-dot"></div>
-                <span id="backend-status-text">TOB Engine Listo</span>
+                <span id="backend-status-text">FitMetrics Engine Listo</span>
             </div>
         </div>
     </aside>
@@ -547,7 +547,7 @@
 
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
                     <div class="glass-card">
-                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-column"></i> Ingresos vs Gastos - TOB Analystic</div>
+                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-column"></i> Ingresos vs Gastos - FitMetrics</div>
                         <div style="height: 260px;"><canvas id="financeChart"></canvas></div>
                     </div>
                     <div class="glass-card">
@@ -795,9 +795,9 @@
     <script>
         const API_URL = window.location.origin + '/api';
 
-        let currentUser = JSON.parse(localStorage.getItem('tob_analystic_user')) || null;
+        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || JSON.parse(localStorage.getItem('tob_analystic_user')) || null;
 
-        let dbState = JSON.parse(localStorage.getItem('tob_analystic_db')) || {
+        let dbState = JSON.parse(localStorage.getItem('fitmetrics_db')) || JSON.parse(localStorage.getItem('tob_analystic_db')) || {
             users: [
                 { id: 'u_admin', username: 'admin', password_hash: 'admin123' }
             ],
@@ -818,11 +818,11 @@
             dbState.payments = [];
             dbState.expenses = [];
             dbState.access_logs = [];
-            localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
+            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
         }
 
         function saveState() {
-            localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
+            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
             renderAll();
         }
 
@@ -964,7 +964,7 @@
 
         function setSession(user) {
             currentUser = user;
-            localStorage.setItem('tob_analystic_user', JSON.stringify(currentUser));
+            localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
             checkAuthSession();
             renderAll();
         }
@@ -972,6 +972,7 @@
         function logoutUser() {
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
                 currentUser = null;
+                localStorage.removeItem('fitmetrics_user');
                 localStorage.removeItem('tob_analystic_user');
                 checkAuthSession();
             }
@@ -1540,7 +1541,7 @@
         }
 
         function exportSQLDump() {
-            let sql = `-- TOB Analystic SQLite Database Dump\n-- Generated: ${new Date().toISOString()}\n\n`;
+            let sql = `-- FitMetrics SQLite Database Dump\n-- Generated: ${new Date().toISOString()}\n\n`;
             sql += `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
             sql += `CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, days INTEGER NOT NULL DEFAULT 30, description TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);\n`;
             sql += `CREATE TABLE IF NOT EXISTS members (id TEXT PRIMARY KEY, name TEXT NOT NULL, dni TEXT UNIQUE NOT NULL, phone TEXT, plan_id TEXT, start_date DATE NOT NULL, expire_date DATE NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (plan_id) REFERENCES plans(id));\n`;
@@ -1557,7 +1558,7 @@
             const blob = new Blob([sql], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'tob_analystic_dump.sql';
+            a.download = 'fitmetrics_dump.sql';
             a.click();
         }
 
