@@ -596,9 +596,16 @@
                         <div class="card-title"><i class="fa-solid fa-wallet"></i> Gastos Registrados</div>
                         <button class="btn btn-primary" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Nuevo Gasto</button>
                     </div>
+                    <div class="filter-bar">
+                        <div>
+                            <button class="filter-btn active" onclick="filterExpenses('ALL', this)">Todos los Gastos</button>
+                            <button class="filter-btn" onclick="filterExpenses('FIJO', this)">📌 Gastos Fijos (Perdurables)</button>
+                            <button class="filter-btn" onclick="filterExpenses('VARIABLE', this)">⚡ Gastos Variables</button>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table>
-                            <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
+                            <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Categoría</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
                             <tbody id="expenses-table-body"></tbody>
                         </table>
                     </div>
@@ -690,7 +697,14 @@
             <h3 id="expense-modal-title" style="margin-bottom: 1rem;">Nuevo Gasto</h3>
             <form onsubmit="saveExpense(event)">
                 <input type="hidden" id="exp-id">
-                <div class="form-group"><label>Concepto</label><input type="text" id="exp-title" class="form-control" required></div>
+                <div class="form-group"><label>Concepto</label><input type="text" id="exp-title" class="form-control" placeholder="Ej: Alquiler del Local" required></div>
+                <div class="form-group">
+                    <label>Tipo de Gasto</label>
+                    <select id="exp-type" class="form-control">
+                        <option value="FIJO">📌 Gasto Fijo (Perdura todos los meses - Ej: Alquiler, Sueldos, Internet)</option>
+                        <option value="VARIABLE">⚡ Gasto Variable (Único / Específico de este mes - Ej: Reparaciones, Insumos)</option>
+                    </select>
+                </div>
                 <div class="form-row">
                     <div class="form-group"><label>Categoría</label>
                         <select id="exp-category" class="form-control">
@@ -975,12 +989,13 @@
                 .filter(p => (p.date || '').startsWith(curMonthStr))
                 .reduce((acc, p) => acc + (p.amount || 0), 0);
 
+            // Fixed Expenses apply every month automatically, Variable Expenses apply to specific month date
             const expensesPaid = dbState.expenses
-                .filter(e => e.status === 'PAGADO' && (e.date || '').startsWith(curMonthStr))
+                .filter(e => e.status === 'PAGADO' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
                 .reduce((acc, e) => acc + (e.amount || 0), 0);
 
             const expensesPend = dbState.expenses
-                .filter(e => e.status === 'PENDIENTE' && (e.date || '').startsWith(curMonthStr))
+                .filter(e => e.status === 'PENDIENTE' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
                 .reduce((acc, e) => acc + (e.amount || 0), 0);
 
             document.getElementById('kpi-total-members').innerText = total;
@@ -1075,23 +1090,37 @@
                 </tr>
             `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay ingresos registrados este mes. ¡Haz clic en "Nuevo Ingreso" para agregar uno!</td></tr>';
 
-            // Expenses
-            document.getElementById('expenses-table-body').innerHTML = dbState.expenses.map(e => `
-                <tr>
-                    <td>${e.date}</td>
-                    <td><strong>${e.title}</strong></td>
-                    <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
-                    <td><strong style="color:var(--danger);">$${e.amount.toLocaleString('es-AR')}</strong></td>
-                    <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
-                    <td>
-                        <div style="display:flex; gap:0.3rem;">
-                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
-                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados este mes. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
+            // Expenses (Filtered by ALL, FIJO, or VARIABLE)
+            const filteredExpenses = dbState.expenses.filter(e => {
+                const expType = e.type || 'VARIABLE';
+                if (currentExpenseFilter === 'ALL') return true;
+                return expType === currentExpenseFilter;
+            });
+
+            document.getElementById('expenses-table-body').innerHTML = filteredExpenses.map(e => {
+                const isFixed = e.type === 'FIJO';
+                const typeBadge = isFixed 
+                    ? `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(6,182,212,0.15); color:var(--primary); border:1px solid rgba(6,182,212,0.3); border-radius:4px; font-weight:700;"><i class="fa-solid fa-repeat"></i> FIJO</span>`
+                    : `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); color:var(--text-muted); border-radius:4px;"><i class="fa-solid fa-bolt"></i> VARIABLE</span>`;
+
+                return `
+                    <tr>
+                        <td>${e.date}</td>
+                        <td><strong>${e.title}</strong></td>
+                        <td>${typeBadge}</td>
+                        <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
+                        <td><strong style="color:var(--danger);">$${e.amount.toLocaleString('es-AR')}</strong></td>
+                        <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
+                        <td>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados en esta categoría. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
 
             // Select Options
             const planOpts = dbState.plans.map(p => `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')})</option>`).join('');
@@ -1393,6 +1422,15 @@
         }
 
 
+        let currentExpenseFilter = 'ALL';
+
+        function filterExpenses(st, btn) {
+            currentExpenseFilter = st;
+            document.querySelectorAll('#view-expenses .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        }
+
         function openExpenseModal(expenseId) {
             if (expenseId) {
                 const exp = dbState.expenses.find(x => x.id === expenseId);
@@ -1400,6 +1438,7 @@
                 document.getElementById('expense-modal-title').innerText = 'Editar Gasto';
                 document.getElementById('exp-id').value = exp.id;
                 document.getElementById('exp-title').value = exp.title;
+                document.getElementById('exp-type').value = exp.type || 'FIJO';
                 document.getElementById('exp-category').value = exp.category;
                 document.getElementById('exp-amount').value = exp.amount;
                 document.getElementById('exp-date').value = exp.date;
@@ -1408,6 +1447,7 @@
                 document.getElementById('expense-modal-title').innerText = 'Nuevo Gasto';
                 document.getElementById('exp-id').value = '';
                 document.getElementById('exp-title').value = '';
+                document.getElementById('exp-type').value = 'FIJO';
                 document.getElementById('exp-category').value = 'Alquiler';
                 document.getElementById('exp-amount').value = '';
                 document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
@@ -1420,6 +1460,7 @@
             e.preventDefault();
             const id = document.getElementById('exp-id').value;
             const title = document.getElementById('exp-title').value;
+            const type = document.getElementById('exp-type').value;
             const category = document.getElementById('exp-category').value;
             const amount = parseFloat(document.getElementById('exp-amount').value);
             const date = document.getElementById('exp-date').value;
@@ -1428,17 +1469,17 @@
             if (id) {
                 const exp = dbState.expenses.find(x => x.id === id);
                 if (exp) {
-                    exp.title = title; exp.category = category;
+                    exp.title = title; exp.type = type; exp.category = category;
                     exp.amount = amount; exp.date = date; exp.status = status;
                 }
             } else {
                 const newId = 'exp_' + Math.random().toString(36).substr(2,6);
-                dbState.expenses.unshift({ id: newId, title, category, amount, date, status });
+                dbState.expenses.unshift({ id: newId, title, type, category, amount, date, status });
                 try {
                     await fetch(`${API_URL}/expenses`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, category, amount, date, status })
+                        body: JSON.stringify({ title, type, category, amount, date, status })
                     });
                 } catch(err) {}
             }
