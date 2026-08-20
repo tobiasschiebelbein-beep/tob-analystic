@@ -91,27 +91,6 @@ function seedInitialData() {
     db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p2, 'Crossfit & Funcional', 35000, 30, 'Clases guiadas con coach de Crossfit y zona funcional']);
     db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p3, 'Pase Cuatrimestral VIP', 95000, 120, '4 meses con beneficio de musculación + clases + locker']);
     db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p4, 'Pase Estudiantil (3d/sem)', 22000, 30, 'Acceso 3 días por semana en horario preferencial']);
-
-    const m1 = 'm_201', m2 = 'm_202', m3 = 'm_203', m4 = 'm_204';
-    const today = new Date();
-    const futureActive = new Date(today.getTime() + 20 * 86400000).toISOString().split('T')[0];
-    const futureWarning = new Date(today.getTime() + 2 * 86400000).toISOString().split('T')[0];
-    const pastExpired = new Date(today.getTime() - 5 * 86400000).toISOString().split('T')[0];
-    const pastStart = new Date(today.getTime() - 10 * 86400000).toISOString().split('T')[0];
-
-    db.run(`INSERT INTO members VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [m1, 'Carlos Rodríguez', '35123456', '+54 9 11 4589-1234', p1, pastStart, futureActive]);
-    db.run(`INSERT INTO members VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [m2, 'Mariana Gómez', '38987654', '+54 9 11 7812-9900', p2, pastStart, futureWarning]);
-    db.run(`INSERT INTO members VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [m3, 'Lucas Martínez', '32456789', '+54 9 11 3344-5566', p1, '2026-06-01', pastExpired]);
-    db.run(`INSERT INTO members VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [m4, 'Sofía Benítez', '41234567', '+54 9 11 6677-8899', p3, pastStart, futureActive]);
-
-    db.run(`INSERT INTO payments VALUES (?, ?, ?, ?, ?, ?, ?)`, ['pay_301', m1, p1, 28000, 'Mercado Pago', '2026-08-10 14:30', 'Pago mensualidad agosto']);
-    db.run(`INSERT INTO payments VALUES (?, ?, ?, ?, ?, ?, ?)`, ['pay_302', m2, p2, 35000, 'Efectivo', '2026-08-12 10:15', 'Pago en mostrador']);
-    db.run(`INSERT INTO payments VALUES (?, ?, ?, ?, ?, ?, ?)`, ['pay_303', m4, p3, 95000, 'Transferencia', '2026-08-01 09:00', 'Pago plan cuatrimestral']);
-
-    db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_401', 'Alquiler Salón Principal', 'Alquiler', 450000, '2026-08-01', 'PAGADO']);
-    db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_402', 'Servicio de Luz y Fuerza', 'Servicios', 85000, '2026-08-05', 'PAGADO']);
-    db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_403', 'Mantenimiento de Cintas de Correr', 'Mantenimiento', 40000, '2026-08-15', 'PAGADO']);
-    db.run(`INSERT INTO expenses VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, ['exp_404', 'Insumos de Limpieza y Toallas', 'Insumos', 25000, '2026-08-18', 'PENDIENTE']);
 }
 
 /* Rutas API de Autenticación... */

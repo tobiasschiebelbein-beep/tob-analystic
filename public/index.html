@@ -379,9 +379,9 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos Totales</p><h3 id="kpi-income">$0</h3></div></div>
-                    <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados</p><h3 id="kpi-expenses">$0</h3></div></div>
-                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos del Mes</p><h3 id="kpi-income">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados (Mes)</p><h3 id="kpi-expenses">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes (Mes)</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
@@ -605,22 +605,20 @@
                 { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' },
                 { id: 'p_103', name: 'Pase Cuatrimestral VIP', price: 95000, days: 120, description: '4 meses con musculación y clases' }
             ],
-            members: [
-                { id: 'm_201', name: 'Carlos Rodríguez', dni: '35123456', phone: '+54 9 11 4589-1234', plan_id: 'p_101', start_date: '2026-08-01', expire_date: '2026-09-01' },
-                { id: 'm_202', name: 'Mariana Gómez', dni: '38987654', phone: '+54 9 11 7812-9900', plan_id: 'p_102', start_date: '2026-07-25', expire_date: '2026-08-24' },
-                { id: 'm_203', name: 'Lucas Martínez', dni: '32456789', phone: '+54 9 11 3344-5566', plan_id: 'p_101', start_date: '2026-06-01', expire_date: '2026-07-01' }
-            ],
-            payments: [
-                { id: 'pay_301', member_id: 'm_201', member_name: 'Carlos Rodríguez', plan_id: 'p_101', plan_name: 'Pase Libre Musculación', amount: 28000, method: 'Mercado Pago', date: '2026-08-01 14:30', note: 'Cuota agosto' },
-                { id: 'pay_302', member_id: 'm_202', member_name: 'Mariana Gómez', plan_id: 'p_102', plan_name: 'Crossfit & Funcional', amount: 35000, method: 'Efectivo', date: '2026-07-25 10:15', note: 'Inscripción' }
-            ],
-            expenses: [
-                { id: 'exp_401', title: 'Alquiler Salón Principal', category: 'Alquiler', amount: 450000, date: '2026-08-01', status: 'PAGADO' },
-                { id: 'exp_402', title: 'Servicio de Luz', category: 'Servicios', amount: 85000, date: '2026-08-05', status: 'PAGADO' },
-                { id: 'exp_403', title: 'Limpieza e Insumos', category: 'Insumos', amount: 25000, date: '2026-08-18', status: 'PENDIENTE' }
-            ],
+            members: [],
+            payments: [],
+            expenses: [],
             access_logs: []
         };
+
+        // Self-clean legacy mock sample data if present
+        if (dbState.members && dbState.members.some(m => m.id === 'm_201')) {
+            dbState.members = [];
+            dbState.payments = [];
+            dbState.expenses = [];
+            dbState.access_logs = [];
+            localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
+        }
 
         function saveState() {
             localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
@@ -817,9 +815,21 @@
             const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
             const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
 
-            const income = dbState.payments.reduce((acc, p) => acc + p.amount, 0);
-            const expensesPaid = dbState.expenses.filter(e => e.status==='PAGADO').reduce((acc, e) => acc + e.amount, 0);
-            const expensesPend = dbState.expenses.filter(e => e.status==='PENDIENTE').reduce((acc, e) => acc + e.amount, 0);
+            // Calculate Monthly Financial Metrics (Auto-updates every month)
+            const now = new Date();
+            const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+            const income = dbState.payments
+                .filter(p => (p.date || '').startsWith(curMonthStr))
+                .reduce((acc, p) => acc + (p.amount || 0), 0);
+
+            const expensesPaid = dbState.expenses
+                .filter(e => e.status === 'PAGADO' && (e.date || '').startsWith(curMonthStr))
+                .reduce((acc, e) => acc + (e.amount || 0), 0);
+
+            const expensesPend = dbState.expenses
+                .filter(e => e.status === 'PENDIENTE' && (e.date || '').startsWith(curMonthStr))
+                .reduce((acc, e) => acc + (e.amount || 0), 0);
 
             document.getElementById('kpi-total-members').innerText = total;
             document.getElementById('kpi-active-members').innerText = active;
