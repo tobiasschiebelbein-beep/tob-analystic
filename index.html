@@ -361,8 +361,6 @@
                 </div>
 
                 <button class="btn btn-secondary" onclick="exportSQLDump()"><i class="fa-solid fa-database"></i> Exportar SQL</button>
-                <button class="btn btn-secondary" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="resetDatabaseToZero()" title="Borrar socios y movimientos para empezar desde cero"><i class="fa-solid fa-trash-can"></i> Empezar a 0</button>
-                <button class="btn btn-warning" onclick="openInflationModal()"><i class="fa-solid fa-bolt"></i> Ajustar Inflación</button>
                 <button class="btn btn-primary" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Nuevo Socio</button>
             </div>
         </header>
@@ -445,12 +443,15 @@
                 <div class="plans-grid" id="plans-container"></div>
             </div>
 
-            <!-- 5. PAYMENTS VIEW -->
+            <!-- 5. PAYMENTS VIEW (INGRESOS) -->
             <div id="view-payments" class="view-panel">
                 <div class="glass-card">
-                    <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-receipt"></i> Historial de Cobranzas</div>
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-receipt"></i> Historial de Ingresos / Cobranzas</div>
+                        <button class="btn btn-primary" onclick="openPaymentModal()"><i class="fa-solid fa-plus"></i> Nuevo Ingreso</button>
+                    </div>
                     <table>
-                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th><th>Acción</th></tr></thead>
                         <tbody id="payments-table-body"></tbody>
                     </table>
                 </div>
@@ -522,14 +523,29 @@
         </div>
     </div>
 
-    <div id="modal-inflation" class="modal-backdrop">
+    <!-- MODAL: Crear / Editar Ingreso / Cobranza -->
+    <div id="modal-payment" class="modal-backdrop">
         <div class="modal-box">
-            <h3 style="margin-bottom: 1rem;">Ajustar Precios por Inflación (%)</h3>
-            <form onsubmit="applyInflation(event)">
-                <div class="form-group"><label>Porcentaje de Aumento (%)</label><input type="number" step="0.5" id="inflation-percentage" class="form-control" placeholder="15" required></div>
+            <h3 id="payment-modal-title" style="margin-bottom: 1rem;">Nuevo Ingreso</h3>
+            <form onsubmit="savePayment(event)">
+                <input type="hidden" id="pay-id">
+                <div class="form-group"><label>Nombre del Socio</label><input type="text" id="pay-member-name" class="form-control" required placeholder="Ej: Juan Pérez"></div>
+                <div class="form-group"><label>Plan / Concepto</label><input type="text" id="pay-plan-name" class="form-control" required placeholder="Ej: Pase Libre Musculación"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="pay-amount" class="form-control" required placeholder="28000"></div>
+                    <div class="form-group"><label>Método de Pago</label>
+                        <select id="pay-method" class="form-control">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Mercado Pago">Mercado Pago</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Fecha</label><input type="date" id="pay-date" class="form-control" required></div>
+                <div class="form-group"><label>Notas / Observaciones</label><input type="text" id="pay-note" class="form-control" placeholder="Ej: Pago cuota mensual"></div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-inflation')">Cancelar</button>
-                    <button type="submit" class="btn btn-warning" style="flex:1;">Aplicar Aumento</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Ingreso</button>
                 </div>
             </form>
         </div>
@@ -907,7 +923,7 @@
                 </div>
             `).join('');
 
-            // Payments
+            // Payments (Ingresos)
             document.getElementById('payments-table-body').innerHTML = dbState.payments.map(p => `
                 <tr>
                     <td>${p.date}</td>
@@ -916,9 +932,14 @@
                     <td><strong style="color:var(--success);">$${p.amount.toLocaleString('es-AR')}</strong></td>
                     <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
                     <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
-                    <td><button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Cobro"><i class="fa-solid fa-trash"></i></button></td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem;">
+                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openPaymentModal('${p.id}')" title="Editar Ingreso"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Ingreso"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
                 </tr>
-            `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay cobranzas registradas este mes.</td></tr>';
+            `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay ingresos registrados este mes. ¡Haz clic en "Nuevo Ingreso" para agregar uno!</td></tr>';
 
             // Expenses
             document.getElementById('expenses-table-body').innerHTML = dbState.expenses.map(e => `
@@ -1061,8 +1082,71 @@
             saveState();
         }
 
+        function openPaymentModal(paymentId) {
+            if (paymentId) {
+                const p = dbState.payments.find(x => x.id === paymentId);
+                if (!p) return;
+                document.getElementById('payment-modal-title').innerText = 'Editar Ingreso';
+                document.getElementById('pay-id').value = p.id;
+                document.getElementById('pay-member-name').value = p.member_name || '';
+                document.getElementById('pay-plan-name').value = p.plan_name || '';
+                document.getElementById('pay-amount').value = p.amount || '';
+                document.getElementById('pay-method').value = p.method || 'Efectivo';
+                document.getElementById('pay-date').value = (p.date || '').slice(0, 10) || new Date().toISOString().split('T')[0];
+                document.getElementById('pay-note').value = p.note || '';
+            } else {
+                document.getElementById('payment-modal-title').innerText = 'Nuevo Ingreso';
+                document.getElementById('pay-id').value = '';
+                document.getElementById('pay-member-name').value = '';
+                document.getElementById('pay-plan-name').value = '';
+                document.getElementById('pay-amount').value = '';
+                document.getElementById('pay-method').value = 'Efectivo';
+                document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('pay-note').value = '';
+            }
+            openModal('modal-payment');
+        }
+
+        function savePayment(e) {
+            e.preventDefault();
+            const id = document.getElementById('pay-id').value;
+            const member_name = document.getElementById('pay-member-name').value;
+            const plan_name = document.getElementById('pay-plan-name').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const method = document.getElementById('pay-method').value;
+            const date = document.getElementById('pay-date').value;
+            const note = document.getElementById('pay-note').value;
+
+            if (id) {
+                const p = dbState.payments.find(x => x.id === id);
+                if (p) {
+                    p.member_name = member_name;
+                    p.plan_name = plan_name;
+                    p.amount = amount;
+                    p.method = method;
+                    p.date = date;
+                    p.note = note;
+                }
+            } else {
+                const newId = 'pay_' + Math.random().toString(36).substr(2, 6);
+                dbState.payments.unshift({
+                    id: newId,
+                    member_id: '',
+                    member_name,
+                    plan_id: '',
+                    plan_name,
+                    amount,
+                    method,
+                    date,
+                    note
+                });
+            }
+            closeModal('modal-payment');
+            saveState();
+        }
+
         function deletePayment(id) {
-            if (!confirm('¿Estás seguro de eliminar este registro de cobro?')) return;
+            if (!confirm('¿Estás seguro de eliminar este registro de ingreso?')) return;
             dbState.payments = dbState.payments.filter(p => p.id !== id);
             saveState();
         }
@@ -1174,16 +1258,6 @@
             saveState();
         }
 
-        function openInflationModal() { openModal('modal-inflation'); }
-
-        function applyInflation(e) {
-            e.preventDefault();
-            const pct = parseFloat(document.getElementById('inflation-percentage').value);
-            const factor = 1 + (pct / 100);
-            dbState.plans.forEach(p => { p.price = Math.round((p.price * factor) / 100) * 100; });
-            closeModal('modal-inflation');
-            saveState();
-        }
 
         function openExpenseModal(expenseId) {
             if (expenseId) {
