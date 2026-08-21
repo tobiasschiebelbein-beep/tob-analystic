@@ -646,8 +646,7 @@
             <li class="nav-item" onclick="switchTab('access')"><i class="fa-solid fa-torii-gate"></i><span>Molinete / Acceso</span></li>
             <li class="nav-item" onclick="switchTab('members')"><i class="fa-solid fa-users"></i><span>Socios</span></li>
             <li class="nav-item" onclick="switchTab('birthdays')"><i class="fa-solid fa-cake-candles"></i><span>Cumpleaños</span></li>
-            <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes Membresía</span></li>
-            <li class="nav-item" onclick="switchTab('workout_plans')"><i class="fa-solid fa-dumbbell"></i><span>Planes Entrenamiento</span></li>
+            <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes y Membresías</span></li>
             <li class="nav-item" onclick="switchTab('payments')"><i class="fa-solid fa-receipt"></i><span>Cobranzas</span></li>
             <li class="nav-item" onclick="switchTab('expenses')"><i class="fa-solid fa-wallet"></i><span>Gastos</span></li>
         </ul>
@@ -775,26 +774,17 @@
                 </div>
             </div>
 
-            <!-- 4. PLANS VIEW -->
+            <!-- 4. UNIFIED PLANS VIEW -->
             <div id="view-plans" class="view-panel">
-                <div class="card-header">
-                    <h3 style="font-size: 1.2rem;"><i class="fa-solid fa-list-check"></i> Planes de Membresía (Cuotas)</h3>
-                    <button class="btn btn-primary" onclick="openPlanModal()"><i class="fa-solid fa-plus"></i> Crear Nuevo Plan de Membresía</button>
-                </div>
-                <div class="plans-grid" id="plans-container"></div>
-            </div>
-
-            <!-- 4B. WORKOUT PLANS VIEW -->
-            <div id="view-workout_plans" class="view-panel">
                 <div class="glass-card">
                     <div class="card-header">
                         <div>
-                            <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-dumbbell" style="color:var(--primary);"></i> Planes y Rutinas de Entrenamiento</div>
-                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Crea rutinas de ejercicios personalizadas para asignarle a los socios de tu gimnasio.</p>
+                            <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Planes y Membresías</div>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Crea los planes de tu gimnasio definiendo el tipo de entrenamiento, duración, ejercicios incluidos y valor de la cuota mensual.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="openWorkoutPlanModal()"><i class="fa-solid fa-plus"></i> Crear Plan de Entrenamiento</button>
+                        <button class="btn btn-primary" onclick="openPlanModal()"><i class="fa-solid fa-plus"></i> Crear Nuevo Plan</button>
                     </div>
-                    <div class="plans-grid" id="workout-plans-container" style="margin-top: 1rem;"></div>
+                    <div class="plans-grid" id="plans-container" style="margin-top: 1rem;"></div>
                 </div>
             </div>
 
@@ -951,86 +941,41 @@
         </div>
     </div>
 
-    <!-- MODAL: Crear / Editar Plan -->
+    <!-- MODAL: Crear / Editar Plan Unificado -->
     <div id="modal-plan" class="modal-backdrop">
-        <div class="modal-box">
-            <h3 id="plan-modal-title" style="margin-bottom: 1rem;">Editar Plan</h3>
+        <div class="modal-box" style="max-width: 620px;">
+            <h3 id="plan-modal-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Crear / Editar Plan</h3>
             <form onsubmit="savePlan(event)">
                 <input type="hidden" id="plan-id">
                 <div class="form-group">
                     <label>Nombre del Plan</label>
-                    <input type="text" id="plan-name" class="form-control" required placeholder="Ej: Pase Libre Musculación">
+                    <input type="text" id="plan-name" class="form-control" required placeholder="Ej: Musculación Pase Libre, Crossfit & Funcional, etc.">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Precio ($)</label>
+                        <label>Tipo / Disciplina de Entrenamiento 🏋️‍♂️</label>
+                        <input type="text" id="plan-workout-type" class="form-control" placeholder="Ej: Musculación, Funcional, Crossfit, Pilates..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor de la Cuota Mensual ($)</label>
                         <input type="number" id="plan-price" class="form-control" required placeholder="28000">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Duración (Días)</label>
                         <input type="number" id="plan-days" class="form-control" required placeholder="30">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Descripción / Beneficios</label>
-                    <input type="text" id="plan-description" class="form-control" placeholder="Acceso libre a máquinas y cardio">
+                    <label>Descripción / Detalle de Entrenamiento e Incluidos</label>
+                    <textarea id="plan-description" class="form-control" rows="4" placeholder="Ej: Acceso libre a máquinas, seguimiento de rutinas de pecho/espalda/piernas y asesoramiento..."></textarea>
                 </div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-plan')">Cancelar</button>
                     <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Plan</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- MODAL: Crear / Editar Plan de Entrenamiento -->
-    <div id="modal-workout-plan" class="modal-backdrop">
-        <div class="modal-box" style="max-width: 650px;">
-            <h3 id="workout-plan-modal-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-dumbbell" style="color:var(--primary);"></i> Crear Plan de Entrenamiento</h3>
-            <form onsubmit="saveWorkoutPlan(event)">
-                <input type="hidden" id="wp-id">
-                <div class="form-group">
-                    <label>Nombre del Plan / Rutina de Entrenamiento</label>
-                    <input type="text" id="wp-name" class="form-control" required placeholder="Ej: Rutina Hipertrofia 4 Días, Fuerza Principiantes...">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Objetivo Principal</label>
-                        <input type="text" id="wp-objective" class="form-control" placeholder="Ej: Ganar masa muscular y fuerza">
-                    </div>
-                    <div class="form-group">
-                        <label>Nivel Recomendado</label>
-                        <select id="wp-level" class="form-control">
-                            <option value="Principiante">Principiante</option>
-                            <option value="Intermedio">Intermedio</option>
-                            <option value="Avanzado">Avanzado</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Detalle de Ejercicios y Rutina por Días</label>
-                    <textarea id="wp-details" class="form-control" rows="6" placeholder="Escribe aquí los ejercicios, series, repeticiones y descansos (Ej: Día 1: Pecho 4x10, Tríceps 3x12...)" required></textarea>
-                </div>
-                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-workout-plan')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Plan de Entrenamiento</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: Ver Rutina del Socio -->
-    <div id="modal-view-routine" class="modal-backdrop">
-        <div class="modal-box" style="max-width: 600px;">
-            <h3 style="margin-bottom: 0.5rem; display:flex; align-items:center; gap:0.5rem;">
-                <i class="fa-solid fa-dumbbell" style="color:var(--primary);"></i> <span id="vr-member-name">Rutina del Socio</span>
-            </h3>
-            <div id="vr-plan-name" style="font-weight:700; color:var(--primary); font-size:1.05rem; margin-bottom:1rem;"></div>
-            <div id="vr-details" style="background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); border-radius:10px; padding:1.2rem; white-space:pre-wrap; font-family:sans-serif; font-size:0.92rem; line-height:1.6; color:#e2e8f0; max-height:350px; overflow-y:auto; margin-bottom:1rem;"></div>
-            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-view-routine')">Cerrar</button>
-                <span id="vr-wa-btn-container"></span>
-            </div>
         </div>
     </div>
 
@@ -1074,28 +1019,14 @@
             if (!Array.isArray(dbState.members)) dbState.members = [];
             if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
                 dbState.plans = [
-                    { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
-                    { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                    { id: 'p_101', name: 'Pase Libre Musculación', workout_type: 'Musculación & Máquinas', price: 28000, days: 30, description: 'Acceso ilimitado a salón de musculación, peso libre y cardio.' },
+                    { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por profesores, alta intensidad y acondicionamiento.' }
                 ];
             }
-            if (!Array.isArray(dbState.workout_plans) || dbState.workout_plans.length === 0) {
-                dbState.workout_plans = [
-                    {
-                        id: 'wp_101',
-                        name: 'Rutina Hipertrofia & Fuerza (4 Días)',
-                        objective: 'Desarrollo muscular y fuerza general',
-                        level: 'Intermedio',
-                        details: 'DÍA 1: Pecho + Tríceps\n- Press Banca Plano 4x10\n- Press Inclinado con Mancuernas 3x12\n- Fondos en Paralelas 3x10\n- Extensión Tríceps Polea 4x12\n\nDÍA 2: Espalda + Bíceps\n- Dominadas 4x8\n- Remo con Barra 4x10\n- Pullover en Polea 3x12\n- Curl Bíceps Barra Z 4x10\n\nDÍA 3: Hombros + Abdominales\n- Press Militar 4x10\n- Elevaciones Laterales 4x12\n- Pájaro 3x12\n- Plancha Abdominal 4x45 seg\n\nDÍA 4: Piernas Completo\n- Sentadillas 4x10\n- Prensa 4x12\n- Peso Muerto Rumano 4x10\n- Gemelos de Pie 4x15'
-                    },
-                    {
-                        id: 'wp_102',
-                        name: 'Plan Acondicionamiento & Quema de Grasa',
-                        objective: 'Pérdida de peso, tonificación y cardio',
-                        level: 'Principiante / Intermedio',
-                        details: 'CIRCUITO KETTLEBELL & CARDIO (4 vueltas):\n1. 1 min Saltos a la soga\n2. 1 min Kettlebell Swings (16kg)\n3. 1 min Burpees continuos\n4. 1 min Sentadillas con salto\n5. 1 min Plancha dinámica\nDescanso: 2 min entre cada vuelta completa.'
-                    }
-                ];
-            }
+            // Ensure all plans have workout_type property
+            dbState.plans.forEach(p => {
+                if (!p.workout_type) p.workout_type = 'Entrenamiento General';
+            });
             if (!Array.isArray(dbState.payments)) dbState.payments = [];
             if (!Array.isArray(dbState.expenses)) dbState.expenses = [];
             if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
@@ -1152,8 +1083,7 @@
                 'access': 'Control de Acceso / Molinete',
                 'members': 'Gestión de Socios',
                 'birthdays': 'Calendario de Cumpleaños 🎂',
-                'plans': 'Planes de Membresía (Cuotas)',
-                'workout_plans': 'Planes y Rutinas de Entrenamiento 🏋️‍♂️',
+                'plans': 'Planes y Membresías 📋',
                 'payments': 'Cobranzas e Ingresos',
                 'expenses': 'Control de Gastos (Fijos y Variables)'
             };
@@ -1736,45 +1666,24 @@
             document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
                 <div class="plan-card">
                     <div>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.85rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem;">
                             <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
                             <div style="display:flex; gap:0.4rem; flex-shrink:0;">
                                 <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
                                 <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
-                        <div style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${p.description || 'Sin descripción'}</div>
+                        <div style="font-size:0.88rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">
+                            🏋️‍♂️ ${p.workout_type || 'Entrenamiento General'}
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space:pre-wrap;">${p.description || 'Sin descripción'}</div>
                     </div>
-                    <div class="plan-price-tag">
-                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Valor</span>
+                    <div class="plan-price-tag" style="margin-top:1rem;">
+                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Cuota Mensual</span>
                         <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${formatMoney(p.price)} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days || 30}d</span></div>
                     </div>
                 </div>
             `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ¡Haz clic en "Crear Nuevo Plan" para añadir uno!</div>';
-
-            // Render Training Workout Plans Grid
-            const workoutPlansGrid = document.getElementById('workout-plans-container');
-            if (workoutPlansGrid) {
-                workoutPlansGrid.innerHTML = (dbState.workout_plans || []).map(wp => `
-                    <div class="plan-card">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem;">
-                                <div style="font-weight:800; font-size:1.15rem; color:#fff; line-height:1.3;">
-                                    <i class="fa-solid fa-dumbbell" style="color:var(--primary); font-size:1rem; margin-right:0.4rem;"></i>${wp.name}
-                                </div>
-                                <div style="display:flex; gap:0.4rem; flex-shrink:0;">
-                                    <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openWorkoutPlanModal('${wp.id}')" title="Editar Plan de Entrenamiento"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deleteWorkoutPlan('${wp.id}')" title="Eliminar Plan de Entrenamiento"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                            <div style="font-size:0.85rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">
-                                🎯 ${wp.objective || 'Entrenamiento General'} <span style="color:var(--text-muted); font-weight:400;">(${wp.level || 'Todos los niveles'})</span>
-                            </div>
-                            <div style="background:rgba(0,0,0,0.25); border:1px solid var(--border-glass); border-radius:8px; padding:0.8rem; font-size:0.82rem; color:#cbd5e1; line-height:1.5; white-space:pre-wrap; max-height:160px; overflow-y:auto;">${wp.details || 'Sin ejercicios especificados.'}</div>
-                        </div>
-                    </div>
-                `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes de entrenamiento creados. ¡Haz clic en "Crear Plan de Entrenamiento" para añadir uno!</div>';
-            }
 
             // Payments (Ingresos)
             document.getElementById('payments-table-body').innerHTML = dbState.payments.map(p => `
@@ -1833,31 +1742,21 @@
         function populatePlanSelects() {
             const planSelect = document.getElementById('m-plan');
             const renewSelect = document.getElementById('renew-plan');
-            const workoutSelect = document.getElementById('m-workout-plan');
 
             if (planSelect && renewSelect) {
                 if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
                     dbState.plans = [
-                        { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
-                        { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                        { id: 'p_101', name: 'Pase Libre Musculación', workout_type: 'Musculación & Máquinas', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
+                        { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por coach' }
                     ];
                 }
 
                 const planOpts = dbState.plans.map(p => 
-                    `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')} - ${p.days}d)</option>`
+                    `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} (${p.workout_type || 'General'}) — $${formatMoney(p.price)} / ${p.days}d</option>`
                 ).join('');
 
                 planSelect.innerHTML = planOpts;
                 renewSelect.innerHTML = planOpts;
-            }
-
-            if (workoutSelect) {
-                if (!Array.isArray(dbState.workout_plans)) dbState.workout_plans = [];
-                let wpOpts = `<option value="">-- Sin Plan de Entrenamiento --</option>`;
-                wpOpts += dbState.workout_plans.map(wp => 
-                    `<option value="${wp.id}">🏋️‍♂️ ${wp.name} (${wp.level || 'General'})</option>`
-                ).join('');
-                workoutSelect.innerHTML = wpOpts;
             }
         }
 
@@ -2254,6 +2153,7 @@
                 document.getElementById('plan-modal-title').innerText = 'Editar Plan';
                 document.getElementById('plan-id').value = p.id;
                 document.getElementById('plan-name').value = p.name;
+                document.getElementById('plan-workout-type').value = p.workout_type || '';
                 document.getElementById('plan-price').value = p.price;
                 document.getElementById('plan-days').value = p.days;
                 document.getElementById('plan-description').value = p.description || '';
@@ -2261,6 +2161,7 @@
                 document.getElementById('plan-modal-title').innerText = 'Crear Nuevo Plan';
                 document.getElementById('plan-id').value = '';
                 document.getElementById('plan-name').value = '';
+                document.getElementById('plan-workout-type').value = '';
                 document.getElementById('plan-price').value = '';
                 document.getElementById('plan-days').value = '30';
                 document.getElementById('plan-description').value = '';
@@ -2272,13 +2173,14 @@
             e.preventDefault();
             const id = document.getElementById('plan-id').value;
             const name = document.getElementById('plan-name').value.trim();
+            const workout_type = document.getElementById('plan-workout-type').value.trim();
             const rawPrice = document.getElementById('plan-price').value;
             const price = parseFloat(rawPrice) || 0;
             const days = parseInt(document.getElementById('plan-days').value) || 30;
             const description = document.getElementById('plan-description').value.trim();
 
-            if (!name) {
-                alert('Por favor ingresa un nombre para el plan.');
+            if (!name || !workout_type) {
+                alert('Por favor ingresa el nombre del plan y el tipo de entrenamiento.');
                 return;
             }
 
@@ -2286,13 +2188,14 @@
                 const p = dbState.plans.find(x => x.id === id);
                 if (p) {
                     p.name = name;
+                    p.workout_type = workout_type;
                     p.price = price;
                     p.days = days;
                     p.description = description;
                 }
             } else {
                 const newId = 'p_' + Math.random().toString(36).substr(2, 6);
-                dbState.plans.push({ id: newId, name, price, days, description });
+                dbState.plans.push({ id: newId, name, workout_type, price, days, description });
             }
 
             closeModal('modal-plan');
