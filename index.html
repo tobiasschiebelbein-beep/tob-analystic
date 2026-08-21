@@ -1105,9 +1105,17 @@
         function saveState() {
             const key = getStorageKey();
             const dataStr = JSON.stringify(dbState);
-            localStorage.setItem(key, dataStr);
-            localStorage.setItem('fitmetrics_db_master', dataStr);
-            localStorage.setItem('fitmetrics_db', dataStr);
+            try {
+                localStorage.setItem(key, dataStr);
+                localStorage.setItem('fitmetrics_db_master', dataStr);
+                localStorage.setItem('fitmetrics_db', dataStr);
+                localStorage.setItem('fitmetrics_db_default', dataStr);
+                if (currentUser && currentUser.id) {
+                    localStorage.setItem('fitmetrics_db_' + currentUser.id, dataStr);
+                }
+            } catch(e) {
+                console.error('Error saving state:', e);
+            }
             renderAll();
         }
 
@@ -1524,6 +1532,11 @@
             return (today.getMonth() + 1 === month) && (today.getDate() === day);
         }
 
+        function formatMoney(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('es-AR');
+        }
+
         function calculateAge(birthdate) {
             if (!birthdate) return '';
             const today = new Date();
@@ -1575,9 +1588,9 @@
             document.getElementById('kpi-expiring-members').innerText = warning;
             document.getElementById('kpi-expired-members').innerText = expired;
             document.getElementById('kpi-today-birthdays').innerText = todayBirthdays.length;
-            document.getElementById('kpi-income').innerText = `$${income.toLocaleString('es-AR')}`;
-            document.getElementById('kpi-expenses').innerText = `$${expensesPaid.toLocaleString('es-AR')}`;
-            document.getElementById('kpi-pending-expenses').innerText = `$${expensesPend.toLocaleString('es-AR')}`;
+            document.getElementById('kpi-income').innerText = `$${formatMoney(income)}`;
+            document.getElementById('kpi-expenses').innerText = `$${formatMoney(expensesPaid)}`;
+            document.getElementById('kpi-pending-expenses').innerText = `$${formatMoney(expensesPend)}`;
 
             // Render Dashboard Birthday Banner Alert
             const bannerContainer = document.getElementById('dashboard-birthday-banner');
@@ -1735,7 +1748,7 @@
                     </div>
                     <div class="plan-price-tag">
                         <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Valor</span>
-                        <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${p.price.toLocaleString('es-AR')} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days}d</span></div>
+                        <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${formatMoney(p.price)} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days || 30}d</span></div>
                     </div>
                 </div>
             `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ¡Haz clic en "Crear Nuevo Plan" para añadir uno!</div>';
@@ -1770,7 +1783,7 @@
                     <td>${p.date}</td>
                     <td><strong>${p.member_name}</strong></td>
                     <td>${p.plan_name}</td>
-                    <td><strong style="color:var(--success);">$${p.amount.toLocaleString('es-AR')}</strong></td>
+                    <td><strong style="color:var(--success);">$${formatMoney(p.amount)}</strong></td>
                     <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
                     <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
                     <td>
@@ -1801,7 +1814,7 @@
                         <td><strong>${e.title}</strong></td>
                         <td>${typeBadge}</td>
                         <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
-                        <td><strong style="color:var(--danger);">$${e.amount.toLocaleString('es-AR')}</strong></td>
+                        <td><strong style="color:var(--danger);">$${formatMoney(e.amount)}</strong></td>
                         <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
                         <td>
                             <div style="display:flex; gap:0.3rem;">
@@ -2243,7 +2256,7 @@
                 dbState.payments.unshift({
                     id: 'pay_' + Math.random().toString(36).substr(2,6),
                     member_id: m.id, member_name: m.name, plan_id: p.id, plan_name: p.name,
-                    amount: amt, method, date: new Date().toLocaleString('es-AR'), note: 'Renovación de cuota'
+                    amount: amt, method, date: new Date().toISOString().split('T')[0], note: 'Renovación de cuota'
                 });
             }
             closeModal('modal-renew');
