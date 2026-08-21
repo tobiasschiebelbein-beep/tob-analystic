@@ -987,32 +987,48 @@
         let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || null;
         let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
 
-        function loadUserDatabase() {
-            if (!currentUser) return;
-            const userDbKey = 'fitmetrics_db_' + currentUser.id;
-            const stored = localStorage.getItem(userDbKey);
-            if (stored) {
-                dbState = JSON.parse(stored);
-            } else {
-                // Initial isolated state template for new user account
-                dbState = {
-                    plans: [
-                        { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
-                        { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
-                    ],
-                    members: [],
-                    payments: [],
-                    expenses: [],
-                    access_logs: []
-                };
-                localStorage.setItem(userDbKey, JSON.stringify(dbState));
+        function getStorageKey() {
+            if (currentUser && currentUser.id) {
+                return 'fitmetrics_db_' + currentUser.id;
             }
+            return 'fitmetrics_db_u_admin';
+        }
+
+        function loadUserDatabase() {
+            const key = getStorageKey();
+            let stored = localStorage.getItem(key);
+            if (!stored) {
+                stored = localStorage.getItem('fitmetrics_db');
+            }
+
+            if (stored) {
+                try {
+                    dbState = JSON.parse(stored);
+                } catch(e) {
+                    console.error('Error loading dbState:', e);
+                }
+            }
+
+            if (!dbState || typeof dbState !== 'object') {
+                dbState = {};
+            }
+
+            if (!Array.isArray(dbState.members)) dbState.members = [];
+            if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
+                dbState.plans = [
+                    { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
+                    { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                ];
+            }
+            if (!Array.isArray(dbState.payments)) dbState.payments = [];
+            if (!Array.isArray(dbState.expenses)) dbState.expenses = [];
+            if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
         }
 
         function saveState() {
-            if (currentUser) {
-                localStorage.setItem('fitmetrics_db_' + currentUser.id, JSON.stringify(dbState));
-            }
+            const key = getStorageKey();
+            localStorage.setItem(key, JSON.stringify(dbState));
+            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
             renderAll();
         }
 
@@ -1703,7 +1719,6 @@
                     { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
                     { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
                 ];
-                saveState();
             }
 
             const planOpts = dbState.plans.map(p => 
@@ -2172,6 +2187,7 @@
 
         window.onload = function() {
             checkAuthSession();
+            loadUserDatabase();
             renderAll();
         };
     </script>
