@@ -513,7 +513,7 @@
 <body>
 
     <!-- AUTHENTICATION OVERLAY PORTAL -->
-    <div id="auth-portal" class="auth-overlay">
+    <div id="auth-portal" class="auth-overlay hidden" style="display:none !important;">
         <div class="auth-card">
             <div class="auth-brand">
                 <div class="auth-brand-icon"><i class="fa-solid fa-chart-line"></i></div>
@@ -652,7 +652,6 @@
             <li class="nav-item active" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></li>
             <li class="nav-item" onclick="switchTab('access')"><i class="fa-solid fa-torii-gate"></i><span>Molinete / Acceso</span></li>
             <li class="nav-item" onclick="switchTab('members')"><i class="fa-solid fa-users"></i><span>Socios</span></li>
-            <li class="nav-item" onclick="switchTab('birthdays')"><i class="fa-solid fa-cake-candles"></i><span>Cumpleaños</span></li>
             <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes y Membresías</span></li>
             <li class="nav-item" onclick="switchTab('payments')"><i class="fa-solid fa-receipt"></i><span>Cobranzas</span></li>
             <li class="nav-item" onclick="switchTab('expenses')"><i class="fa-solid fa-wallet"></i><span>Gastos</span></li>
@@ -696,7 +695,6 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card" onclick="switchTab('birthdays')" style="cursor:pointer;" title="Ver Calendario de Cumpleaños"><div class="kpi-icon" style="background:rgba(236,72,153,0.15); color:#ec4899;"><i class="fa-solid fa-cake-candles"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Cumpleaños de Hoy</p><h3 id="kpi-today-birthdays" style="color:#ec4899;">0</h3></div></div>
                     <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos del Mes</p><h3 id="kpi-income">$0</h3></div></div>
                     <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados (Mes)</p><h3 id="kpi-expenses">$0</h3></div></div>
                     <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes (Mes)</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
@@ -740,7 +738,6 @@
                             <button class="filter-btn" onclick="filterMembers('ACTIVE', this)">Activos</button>
                             <button class="filter-btn" onclick="filterMembers('WARNING', this)">Por Vencer</button>
                             <button class="filter-btn" onclick="filterMembers('EXPIRED', this)">Vencidos</button>
-                            <button class="filter-btn" onclick="filterMembers('BIRTHDAY', this)" style="border-color: rgba(236,72,153,0.4); color: #ec4899;"><i class="fa-solid fa-cake-candles"></i> Cumpleañeros</button>
                         </div>
                         <input type="text" id="search-members-input" class="form-control" style="width: 240px;" placeholder="Buscar socio..." oninput="renderMembersTable()">
                     </div>
@@ -752,30 +749,6 @@
                                 </tr>
                             </thead>
                             <tbody id="members-table-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. BIRTHDAYS CALENDAR VIEW -->
-            <div id="view-birthdays" class="view-panel">
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-cake-candles" style="color:#ec4899;"></i> Calendario & Notificación de Cumpleaños</div>
-                    </div>
-                    <div id="birthday-today-section" style="margin-bottom: 1.5rem;"></div>
-                    
-                    <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--primary); display:flex; align-items:center; gap:0.5rem;">
-                        <i class="fa-solid fa-calendar-days"></i> Todos los Cumpleaños Registrados
-                    </h4>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th><th>Socio / DNI</th><th>Edad</th><th>Teléfono / WhatsApp</th><th>Estado</th><th>Acción WhatsApp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="birthdays-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -987,14 +960,12 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin + '/api';
-
-        // Global User Accounts Registry Persistence
+        /* Global State Variables */
         let usersRegistry = JSON.parse(localStorage.getItem('fitmetrics_users_registry')) || [
             { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
         ];
 
-        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || null;
+        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
         let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
         let currentMemberFilter = 'ALL';
         let currentExpenseFilter = 'ALL';
@@ -1035,11 +1006,14 @@
             }
             // Ensure all plans have workout_type property
             dbState.plans.forEach(p => {
-                if (!p.workout_type) p.workout_type = 'Entrenamiento General';
+                if (!p.workout_type) p.workout_type = p.name || 'Entrenamiento General';
             });
+
             if (!Array.isArray(dbState.payments)) dbState.payments = [];
             if (!Array.isArray(dbState.expenses)) dbState.expenses = [];
             if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
+
+            renderAll();
         }
 
         function saveState() {
@@ -1074,35 +1048,23 @@
         /* Authentication System Functions */
         function checkAuthSession() {
             const portal = document.getElementById('auth-portal');
-            if (!portal) return;
-
-            if (!currentUser || typeof currentUser !== 'object' || Array.isArray(currentUser)) {
-                try {
-                    const stored = localStorage.getItem('fitmetrics_user');
-                    if (stored) currentUser = JSON.parse(stored);
-                } catch(e) { currentUser = null; }
-            }
-
-            if (currentUser && typeof currentUser === 'object' && !currentUser.username) {
-                currentUser.username = currentUser.email ? currentUser.email.split('@')[0] : 'admin';
+            if (!currentUser || typeof currentUser !== 'object') {
+                currentUser = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
                 try { localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser)); } catch(e) {}
             }
 
-            if (!currentUser || !currentUser.username) {
-                portal.style.setProperty('display', 'flex', 'important');
-                portal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            } else {
+            if (portal) {
                 portal.style.setProperty('display', 'none', 'important');
                 portal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                const nameEl = document.getElementById('user-display-name');
-                const avatarEl = document.getElementById('user-avatar');
-                const uname = currentUser.username || 'admin';
-                if (nameEl) nameEl.innerText = uname;
-                if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
-                try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
             }
+            document.body.style.overflow = 'auto';
+
+            const nameEl = document.getElementById('user-display-name');
+            const avatarEl = document.getElementById('user-avatar');
+            const uname = currentUser.username || 'admin';
+            if (nameEl) nameEl.innerText = uname;
+            if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
+            try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
         }
 
         let currentTab = 'dashboard';
@@ -1113,7 +1075,6 @@
                 'dashboard': 'Dashboard General',
                 'access': 'Control de Acceso / Molinete',
                 'members': 'Gestión de Socios',
-                'birthdays': 'Calendario de Cumpleaños 🎂',
                 'plans': 'Planes y Membresías 📋',
                 'payments': 'Cobranzas e Ingresos',
                 'expenses': 'Control de Gastos (Fijos y Variables)'
@@ -1527,8 +1488,6 @@
             const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
             const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
 
-            const todayBirthdays = dbState.members.filter(m => isBirthdayToday(m.birthdate));
-
             // Calculate Monthly Financial Metrics (Auto-updates every month)
             const now = new Date();
             const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -1550,33 +1509,9 @@
             document.getElementById('kpi-active-members').innerText = active;
             document.getElementById('kpi-expiring-members').innerText = warning;
             document.getElementById('kpi-expired-members').innerText = expired;
-            document.getElementById('kpi-today-birthdays').innerText = todayBirthdays.length;
             document.getElementById('kpi-income').innerText = `$${formatMoney(income)}`;
             document.getElementById('kpi-expenses').innerText = `$${formatMoney(expensesPaid)}`;
             document.getElementById('kpi-pending-expenses').innerText = `$${formatMoney(expensesPend)}`;
-
-            // Render Dashboard Birthday Banner Alert
-            const bannerContainer = document.getElementById('dashboard-birthday-banner');
-            if (todayBirthdays.length > 0) {
-                bannerContainer.innerHTML = todayBirthdays.map(m => {
-                    const waUrl = getBirthdayWhatsAppUrl(m.phone, m.name);
-                    const ageStr = calculateAge(m.birthdate);
-                    return `
-                        <div class="birthday-banner">
-                            <div style="display:flex; align-items:center; gap:0.85rem;">
-                                <div style="font-size:2.2rem;">🎂</div>
-                                <div>
-                                    <div style="font-weight:800; font-size:1.1rem; color:#fff;">¡Hoy es el cumpleaños de ${m.name}! 🎉</div>
-                                    <div style="font-size:0.88rem; color:#fbcfe8;">${ageStr ? `Cumple ${ageStr} · ` : ''}DNI: ${m.dni}</div>
-                                </div>
-                            </div>
-                            ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff; font-size:0.92rem; padding:0.5rem 1rem;"><i class="fa-brands fa-whatsapp"></i> Saludar por WhatsApp</a>` : `<span style="font-size:0.85rem; color:var(--text-muted);">Sin WhatsApp</span>`}
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                bannerContainer.innerHTML = '';
-            }
 
             // Chart
             const ctx = document.getElementById('financeChart').getContext('2d');
@@ -1602,11 +1537,8 @@
             const query = document.getElementById('search-members-input')?.value.toLowerCase() || '';
             const filteredMembers = dbState.members.filter(m => {
                 const status = getMemberStatus(m.expire_date);
-                const isBday = isBirthdayToday(m.birthdate);
                 let matchFilter = true;
-                if (currentMemberFilter === 'BIRTHDAY') {
-                    matchFilter = isBday;
-                } else if (currentMemberFilter !== 'ALL') {
+                if (currentMemberFilter !== 'ALL') {
                     matchFilter = status === currentMemberFilter;
                 }
                 const matchSearch = m.name.toLowerCase().includes(query) || m.dni.includes(query);
@@ -1616,13 +1548,12 @@
             document.getElementById('members-table-body').innerHTML = filteredMembers.map(m => {
                 const plan = dbState.plans.find(p => p.id === m.plan_id);
                 const status = getMemberStatus(m.expire_date);
-                const isBday = isBirthdayToday(m.birthdate);
                 const waUrl = getWhatsAppUrl(m.phone, m.name);
 
                 return `
                     <tr>
                         <td>
-                            <strong>${m.name}</strong> ${isBday ? `<span title="¡Hoy cumple años!" style="cursor:pointer; font-size:0.9rem; background:rgba(236,72,153,0.2); border:1px solid #ec4899; padding:0.1rem 0.4rem; border-radius:12px; color:#ec4899; font-weight:700;">🎂 ¡CUMPLE HOY!</span>` : ''}
+                            <strong>${m.name}</strong>
                             <br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span>
                         </td>
                         <td>
@@ -1647,46 +1578,6 @@
                     </tr>
                 `;
             }).join('') || '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios registrados. ¡Haz clic en "+ Nuevo Socio" para registrar uno!</td></tr>';
-
-            // Birthday Calendar Table View
-            const todaySec = document.getElementById('birthday-today-section');
-            if (todayBirthdays.length > 0) {
-                todaySec.innerHTML = `
-                    <div style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.4); border-radius:14px; padding:1rem 1.25rem;">
-                        <h4 style="color:#ec4899; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;"><i class="fa-solid fa-cake-candles"></i> ¡Cumpleaños de Hoy!</h4>
-                        <div style="display:flex; flex-direction:column; gap:0.6rem;">
-                            ${todayBirthdays.map(m => `
-                                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); padding:0.75rem 1rem; border-radius:10px;">
-                                    <div>
-                                        <strong>${m.name}</strong> (DNI: ${m.dni}) ${calculateAge(m.birthdate) ? `— ${calculateAge(m.birthdate)}` : ''}
-                                    </div>
-                                    ${m.phone ? `<a href="${getBirthdayWhatsAppUrl(m.phone, m.name)}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff;"><i class="fa-brands fa-whatsapp"></i> Saludar por WhatsApp</a>` : '<span style="color:var(--text-muted); font-size:0.8rem;">Sin WhatsApp</span>'}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else {
-                todaySec.innerHTML = `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-glass); border-radius:12px; padding:0.85rem 1.2rem; color:var(--text-muted); font-size:0.9rem;"><i class="fa-solid fa-info-circle"></i> Hoy no hay cumpleaños registrados entre tus socios.</div>`;
-            }
-
-            const membersWithBirthdays = [...dbState.members].sort((a,b) => {
-                const dateA = a.birthdate ? a.birthdate.slice(5) : '99-99';
-                const dateB = b.birthdate ? b.birthdate.slice(5) : '99-99';
-                return dateA.localeCompare(dateB);
-            });
-
-            document.getElementById('birthdays-table-body').innerHTML = membersWithBirthdays.map(m => {
-                const isBday = isBirthdayToday(m.birthdate);
-                const waGreetingUrl = getBirthdayWhatsAppUrl(m.phone, m.name);
-                const waChatUrl = getWhatsAppUrl(m.phone, m.name);
-                return `
-                    <tr style="${isBday ? 'background:rgba(236,72,153,0.1);' : ''}">
-                        <td><strong>${formatBirthdate(m.birthdate)}</strong></td>
-                        <td><strong>${m.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span></td>
-                        <td>${calculateAge(m.birthdate) || '-'}</td>
-                        <td>${m.phone ? `<a href="${waChatUrl}" target="_blank" class="btn-wa-link"><i class="fa-brands fa-whatsapp"></i> ${m.phone}</a>` : '-'}</td>
-                        <td>${isBday ? `<span style="background:rgba(236,72,153,0.25); color:#ec4899; border:1px solid #ec4899; padding:0.2rem 0.6rem; border-radius:50px; font-weight:800; font-size:0.75rem;">🎂 ¡CUMPLE HOY!</span>` : `<span style="color:var(--text-muted); font-size:0.8rem;">Registrado</span>`}</td>
                         <td>
                             ${m.phone ? `<a href="${waGreetingUrl}" target="_blank" class="btn btn-wa-icon"><i class="fa-brands fa-whatsapp"></i> Saludar</a>` : '-'}
                         </td>
