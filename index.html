@@ -303,8 +303,10 @@
         .modal-backdrop.open { display: flex; }
         .modal-box { background: #0f172a; border: 1px solid var(--border-glass); border-radius: 18px; width: 100%; max-width: 500px; padding: 1.5rem; }
         .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; }
+        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; font-size: 0.92rem; transition: border-color 0.2s; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background-color: #0f172a; color: #ffffff; padding: 0.5rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .plans-grid {
             display: grid;
@@ -1454,10 +1456,29 @@
                 `;
             }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados en esta categoría. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
 
-            // Select Options
-            const planOpts = dbState.plans.map(p => `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')})</option>`).join('');
-            document.getElementById('m-plan').innerHTML = planOpts;
-            document.getElementById('renew-plan').innerHTML = planOpts;
+            // Populate Plan Dropdowns
+            populatePlanSelects();
+        }
+
+        function populatePlanSelects() {
+            const planSelect = document.getElementById('m-plan');
+            const renewSelect = document.getElementById('renew-plan');
+            if (!planSelect || !renewSelect) return;
+
+            if (!dbState.plans || dbState.plans.length === 0) {
+                dbState.plans = [
+                    { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
+                    { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                ];
+                saveState();
+            }
+
+            const planOpts = dbState.plans.map(p => 
+                `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')} - ${p.days}d)</option>`
+            ).join('');
+
+            planSelect.innerHTML = planOpts;
+            renewSelect.innerHTML = planOpts;
         }
 
         /* Check Access */
@@ -1520,6 +1541,8 @@
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         function openMemberModal(memberId) {
+            populatePlanSelects();
+
             if (memberId) {
                 const m = dbState.members.find(x => x.id === memberId);
                 if (!m) return;
@@ -1529,7 +1552,9 @@
                 document.getElementById('m-dni').value = m.dni;
                 document.getElementById('m-phone').value = m.phone || '';
                 document.getElementById('m-birthdate').value = m.birthdate || '';
-                document.getElementById('m-plan').value = m.plan_id;
+                if (m.plan_id) {
+                    document.getElementById('m-plan').value = m.plan_id;
+                }
                 document.getElementById('m-start').value = m.start_date;
                 document.getElementById('m-expire').value = m.expire_date;
             } else {
@@ -1540,16 +1565,29 @@
                 document.getElementById('m-phone').value = '';
                 document.getElementById('m-birthdate').value = '';
                 document.getElementById('m-start').value = new Date().toISOString().split('T')[0];
+                if (document.getElementById('m-plan').options.length > 0) {
+                    document.getElementById('m-plan').selectedIndex = 0;
+                }
                 calculateExpireDate();
             }
             openModal('modal-member');
         }
 
         function calculateExpireDate() {
-            const start = document.getElementById('m-start').value;
+            const startInput = document.getElementById('m-start');
             const planSel = document.getElementById('m-plan');
-            if (!start || !planSel.selectedOptions[0]) return;
-            const days = parseInt(planSel.selectedOptions[0].getAttribute('data-days')) || 30;
+            if (!startInput || !planSel) return;
+            const start = startInput.value;
+            if (!start || !planSel.options || !planSel.options.length) return;
+
+            let selectedOpt = planSel.options[planSel.selectedIndex];
+            if (!selectedOpt && planSel.options.length > 0) {
+                selectedOpt = planSel.options[0];
+                planSel.selectedIndex = 0;
+            }
+            if (!selectedOpt) return;
+
+            const days = parseInt(selectedOpt.getAttribute('data-days')) || 30;
             const d = new Date(start + 'T00:00:00');
             d.setDate(d.getDate() + days);
             document.getElementById('m-expire').value = d.toISOString().split('T')[0];
