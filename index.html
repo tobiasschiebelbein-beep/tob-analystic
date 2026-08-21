@@ -1067,12 +1067,23 @@
         /* Authentication System Functions */
         function checkAuthSession() {
             const portal = document.getElementById('auth-portal');
+            if (!portal) return;
+
             if (!currentUser) {
+                try {
+                    currentUser = JSON.parse(localStorage.getItem('fitmetrics_user'));
+                } catch(e) { currentUser = null; }
+            }
+
+            if (!currentUser || !currentUser.username) {
                 portal.style.display = 'flex';
             } else {
                 portal.style.display = 'none';
-                document.getElementById('user-display-name').innerText = currentUser.username;
-                document.getElementById('user-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
+                const nameEl = document.getElementById('user-display-name');
+                const avatarEl = document.getElementById('user-avatar');
+                const uname = currentUser.username || 'Usuario';
+                if (nameEl) nameEl.innerText = uname;
+                if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
                 loadUserDatabase();
             }
         }
@@ -1223,15 +1234,25 @@
                 return;
             }
 
-            const user = usersRegistry.find(u => 
-                (u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)) && 
-                u.password_hash === pw
+            try {
+                const storedReg = localStorage.getItem('fitmetrics_users_registry');
+                if (storedReg) usersRegistry = JSON.parse(storedReg);
+            } catch(e) {}
+
+            let user = usersRegistry.find(u => 
+                (u.username && u.username.toLowerCase() === inputVal) || 
+                (u.email && u.email.toLowerCase() === inputVal)
             );
 
-            if (user) {
+            if (user && user.password_hash === pw) {
                 setSession(user);
-            } else if (inputVal === 'admin' && pw === 'admin123') {
-                setSession({ id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' });
+            } else if ((inputVal === 'admin' || inputVal === 'admin@fitmetrics.com') && pw === 'admin123') {
+                const adminUser = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' };
+                if (!usersRegistry.some(u => u.username === 'admin')) {
+                    usersRegistry.push(adminUser);
+                    localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+                }
+                setSession(adminUser);
             } else {
                 showAuthError('Usuario, email o contraseña incorrectos.');
             }
@@ -1421,8 +1442,12 @@
         }
 
         function setSession(user) {
+            if (!user) return;
+            if (!user.username) user.username = 'admin';
             currentUser = user;
-            localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
+            try {
+                localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
+            } catch(e) {}
             checkAuthSession();
             renderAll();
         }
@@ -2291,9 +2316,9 @@
         }
 
         window.onload = function() {
-            checkAuthSession();
-            loadUserDatabase();
-            renderAll();
+            try { checkAuthSession(); } catch(e) { console.error('Auth load error:', e); }
+            try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
+            try { renderAll(); } catch(e) { console.error('Render load error:', e); }
         };
     </script>
 </body>
