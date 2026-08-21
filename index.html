@@ -1846,7 +1846,7 @@
             document.getElementById('m-expire').value = d.toISOString().split('T')[0];
         }
 
-        async function saveMember(e) {
+        function saveMember(e) {
             e.preventDefault();
             const id = document.getElementById('m-id').value;
             const name = document.getElementById('m-name').value.trim();
@@ -1924,10 +1924,9 @@
             switchTab('members');
         }
 
-        async function deleteMember(id) {
+        function deleteMember(id) {
             if (!confirm('¿Estás seguro de eliminar este socio?')) return;
             dbState.members = dbState.members.filter(m => m.id !== id);
-            try { await fetch(`${API_URL}/members/${id}`, { method: 'DELETE' }); } catch(e) {}
             saveState();
         }
 
@@ -1959,12 +1958,12 @@
         function savePayment(e) {
             e.preventDefault();
             const id = document.getElementById('pay-id').value;
-            const member_name = document.getElementById('pay-member-name').value;
-            const plan_name = document.getElementById('pay-plan-name').value;
-            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const member_name = document.getElementById('pay-member-name').value.trim();
+            const plan_name = document.getElementById('pay-plan-name').value.trim();
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const method = document.getElementById('pay-method').value;
             const date = document.getElementById('pay-date').value;
-            const note = document.getElementById('pay-note').value;
+            const note = document.getElementById('pay-note').value.trim();
 
             if (id) {
                 const p = dbState.payments.find(x => x.id === id);
@@ -1992,6 +1991,7 @@
             }
             closeModal('modal-payment');
             saveState();
+            switchTab('payments');
         }
 
         function deletePayment(id) {
@@ -2059,13 +2059,18 @@
             openModal('modal-plan');
         }
 
-        async function savePlan(e) {
+        function savePlan(e) {
             e.preventDefault();
             const id = document.getElementById('plan-id').value;
-            const name = document.getElementById('plan-name').value;
-            const price = parseFloat(document.getElementById('plan-price').value);
+            const name = document.getElementById('plan-name').value.trim();
+            const price = parseFloat(document.getElementById('plan-price').value) || 0;
             const days = parseInt(document.getElementById('plan-days').value) || 30;
-            const description = document.getElementById('plan-description').value;
+            const description = document.getElementById('plan-description').value.trim();
+
+            if (!name || !price) {
+                alert('Por favor ingresa un nombre y precio para el plan.');
+                return;
+            }
 
             if (id) {
                 const p = dbState.plans.find(x => x.id === id);
@@ -2075,38 +2080,21 @@
                     p.days = days;
                     p.description = description;
                 }
-                try {
-                    await fetch(`${API_URL}/plans/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, price, days, description })
-                    });
-                } catch(err) {}
             } else {
                 const newId = 'p_' + Math.random().toString(36).substr(2, 6);
                 dbState.plans.push({ id: newId, name, price, days, description });
-                try {
-                    await fetch(`${API_URL}/plans`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, price, days, description })
-                    });
-                } catch(err) {}
             }
 
             closeModal('modal-plan');
             saveState();
+            switchTab('plans');
         }
 
-        async function deletePlan(planId) {
+        function deletePlan(planId) {
             if (!confirm('¿Estás seguro de eliminar este plan?')) return;
             dbState.plans = dbState.plans.filter(p => p.id !== planId);
-            try {
-                await fetch(`${API_URL}/plans/${planId}`, { method: 'DELETE' });
-            } catch(err) {}
             saveState();
         }
-
 
         let currentExpenseFilter = 'ALL';
 
@@ -2142,41 +2130,44 @@
             openModal('modal-expense');
         }
 
-        async function saveExpense(e) {
+        function saveExpense(e) {
             e.preventDefault();
             const id = document.getElementById('exp-id').value;
-            const title = document.getElementById('exp-title').value;
+            const title = document.getElementById('exp-title').value.trim();
             const type = document.getElementById('exp-type').value;
             const category = document.getElementById('exp-category').value;
-            const amount = parseFloat(document.getElementById('exp-amount').value);
+            const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
             const date = document.getElementById('exp-date').value;
             const status = document.getElementById('exp-status').value;
+
+            if (!title || !amount) {
+                alert('Por favor completa el concepto y monto del gasto.');
+                return;
+            }
 
             if (id) {
                 const exp = dbState.expenses.find(x => x.id === id);
                 if (exp) {
-                    exp.title = title; exp.type = type; exp.category = category;
-                    exp.amount = amount; exp.date = date; exp.status = status;
+                    exp.title = title;
+                    exp.type = type;
+                    exp.category = category;
+                    exp.amount = amount;
+                    exp.date = date;
+                    exp.status = status;
                 }
             } else {
-                const newId = 'exp_' + Math.random().toString(36).substr(2,6);
+                const newId = 'exp_' + Math.random().toString(36).substr(2, 6);
                 dbState.expenses.unshift({ id: newId, title, type, category, amount, date, status });
-                try {
-                    await fetch(`${API_URL}/expenses`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, type, category, amount, date, status })
-                    });
-                } catch(err) {}
             }
+
             closeModal('modal-expense');
             saveState();
+            switchTab('expenses');
         }
 
-        async function deleteExpense(id) {
+        function deleteExpense(id) {
             if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
             dbState.expenses = dbState.expenses.filter(e => e.id !== id);
-            try { await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }); } catch(e) {}
             saveState();
         }
 
