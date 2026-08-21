@@ -488,6 +488,7 @@
             <div class="auth-tabs">
                 <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
                 <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</button>
+                <button id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover')">Recuperar</button>
             </div>
 
             <div id="auth-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
@@ -497,11 +498,14 @@
             <form id="form-login" onsubmit="handleLoginSubmit(event)">
                 <div class="form-group">
                     <label>Usuario o Email</label>
-                    <input type="text" id="auth-login-username" class="form-control" placeholder="Ej: admin" required>
+                    <input type="text" id="auth-login-username" class="form-control" placeholder="Ej: admin o admin@fitmetrics.com" required>
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
                     <input type="password" id="auth-login-password" class="form-control" placeholder="••••••••" required>
+                    <div style="text-align: right; margin-top: 0.4rem;">
+                        <a href="#" onclick="switchAuthTab('recover')" style="color: var(--primary); font-size: 0.82rem; text-decoration: none; font-weight: 500;">¿Olvidaste tu contraseña?</a>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
                     <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
@@ -511,8 +515,12 @@
             <!-- Register Form -->
             <form id="form-register" style="display: none;" onsubmit="handleRegisterSubmit(event)">
                 <div class="form-group">
-                    <label>Nombre de Usuario</label>
-                    <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: mi_gimnasio" required>
+                    <label>Nombre de Usuario (Único para tu gimnasio)</label>
+                    <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: gimnasio_central" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico (Email para recuperación)</label>
+                    <input type="email" id="auth-reg-email" class="form-control" placeholder="Ej: contacto@gimnasio.com" required>
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
@@ -525,6 +533,33 @@
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
                     <i class="fa-solid fa-user-plus"></i> Crear Cuenta
                 </button>
+            </form>
+
+            <!-- Recover Password Form -->
+            <form id="form-recover" style="display: none;" onsubmit="handleRecoverSubmit(event)">
+                <div id="recover-step-1">
+                    <div class="form-group">
+                        <label>Ingresa tu Email o Usuario Registrado</label>
+                        <input type="text" id="auth-recover-input" class="form-control" placeholder="Ej: admin@fitmetrics.com o admin">
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="verifyAccountForRecovery()">
+                        <i class="fa-solid fa-magnifying-glass"></i> Buscar Cuenta
+                    </button>
+                </div>
+                <div id="recover-step-2" style="display: none;">
+                    <div id="recover-account-info" style="background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: #fff; margin-bottom: 1rem; text-align: left;"></div>
+                    <div class="form-group">
+                        <label>Nueva Contraseña</label>
+                        <input type="password" id="auth-recover-new-password" class="form-control" placeholder="Escribe tu nueva contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Nueva Contraseña</label>
+                        <input type="password" id="auth-recover-confirm-password" class="form-control" placeholder="Repite tu nueva contraseña">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                        <i class="fa-solid fa-key"></i> Restablecer Contraseña
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -869,50 +904,51 @@
     <script>
         const API_URL = window.location.origin + '/api';
 
-        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || JSON.parse(localStorage.getItem('tob_analystic_user')) || null;
+        // Global User Accounts Registry Persistence
+        let usersRegistry = JSON.parse(localStorage.getItem('fitmetrics_users_registry')) || [
+            { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+        ];
 
-        let dbState = JSON.parse(localStorage.getItem('fitmetrics_db')) || JSON.parse(localStorage.getItem('tob_analystic_db')) || {
-            users: [
-                { id: 'u_admin', username: 'admin', password_hash: 'admin123' }
-            ],
-            plans: [
-                { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
-                { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' },
-                { id: 'p_103', name: 'Pase Cuatrimestral VIP', price: 95000, days: 120, description: '4 meses con musculación y clases' }
-            ],
-            members: [],
-            payments: [],
-            expenses: [],
-            access_logs: []
-        };
+        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || null;
+        let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
 
-        // Self-clean legacy mock sample data if present
-        if (dbState.members && dbState.members.some(m => m.id === 'm_201')) {
-            dbState.members = [];
-            dbState.payments = [];
-            dbState.expenses = [];
-            dbState.access_logs = [];
-            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
+        function loadUserDatabase() {
+            if (!currentUser) return;
+            const userDbKey = 'fitmetrics_db_' + currentUser.id;
+            const stored = localStorage.getItem(userDbKey);
+            if (stored) {
+                dbState = JSON.parse(stored);
+            } else {
+                // Initial isolated state template for new user account
+                dbState = {
+                    plans: [
+                        { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
+                        { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                    ],
+                    members: [],
+                    payments: [],
+                    expenses: [],
+                    access_logs: []
+                };
+                localStorage.setItem(userDbKey, JSON.stringify(dbState));
+            }
         }
 
         function saveState() {
-            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
+            if (currentUser) {
+                localStorage.setItem('fitmetrics_db_' + currentUser.id, JSON.stringify(dbState));
+            }
             renderAll();
         }
 
         async function resetDatabaseToZero() {
-            if (confirm('⚠️ ¿Estás seguro de vaciar la base de datos?\n\nEsto borrará todos los socios, pagos, gastos e historial predeterminados para que puedas cargar tus propios datos reales desde cero.')) {
+            if (confirm('⚠️ ¿Estás seguro de vaciar tu base de datos?\n\nEsto borrará únicamente tus socios, pagos, gastos e historial sin afectar a otros usuarios.')) {
                 dbState.members = [];
                 dbState.payments = [];
                 dbState.expenses = [];
                 dbState.access_logs = [];
                 saveState();
-
-                try {
-                    await fetch(`${API_URL}/db/reset`, { method: 'POST' });
-                } catch(err) {}
-
-                alert('¡Sistema vaciado con éxito! Ahora puedes empezar a cargar tus datos reales.');
+                alert('¡Tus datos fueron vaciados con éxito!');
                 renderAll();
             }
         }
@@ -926,14 +962,24 @@
                 portal.style.display = 'none';
                 document.getElementById('user-display-name').innerText = currentUser.username;
                 document.getElementById('user-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
+                loadUserDatabase();
             }
         }
 
         function switchAuthTab(tab) {
             document.getElementById('tab-login').classList.toggle('active', tab === 'login');
             document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+            document.getElementById('tab-recover').classList.toggle('active', tab === 'recover');
+
             document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
             document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('form-recover').style.display = tab === 'recover' ? 'block' : 'none';
+            
+            if (tab === 'recover') {
+                document.getElementById('recover-step-1').style.display = 'block';
+                document.getElementById('recover-step-2').style.display = 'none';
+                document.getElementById('auth-recover-input').value = '';
+            }
             hideAuthMessages();
         }
 
@@ -959,34 +1005,25 @@
         async function handleLoginSubmit(e) {
             e.preventDefault();
             hideAuthMessages();
-            const un = document.getElementById('auth-login-username').value.trim();
+            const inputVal = document.getElementById('auth-login-username').value.trim().toLowerCase();
             const pw = document.getElementById('auth-login-password').value.trim();
 
-            if (!un || !pw) {
+            if (!inputVal || !pw) {
                 showAuthError('Por favor completa todos los campos.');
                 return;
             }
 
-            // Check API server if available
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: un, password: pw })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setSession(data.user);
-                    return;
-                }
-            } catch(err) {}
+            const user = usersRegistry.find(u => 
+                (u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)) && 
+                u.password_hash === pw
+            );
 
-            // Local fallback check
-            const user = dbState.users.find(u => u.username.toLowerCase() === un.toLowerCase() && u.password_hash === pw);
-            if (user || (un.toLowerCase() === 'admin' && pw === 'admin123')) {
-                setSession({ id: user ? user.id : 'u_admin', username: un });
+            if (user) {
+                setSession(user);
+            } else if (inputVal === 'admin' && pw === 'admin123') {
+                setSession({ id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' });
             } else {
-                showAuthError('Usuario o contraseña incorrectos.');
+                showAuthError('Usuario, email o contraseña incorrectos.');
             }
         }
 
@@ -994,10 +1031,11 @@
             e.preventDefault();
             hideAuthMessages();
             const un = document.getElementById('auth-reg-username').value.trim();
+            const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
             const pw = document.getElementById('auth-reg-password').value.trim();
             const confirmPw = document.getElementById('auth-reg-confirm').value.trim();
 
-            if (!un || !pw || !confirmPw) {
+            if (!un || !email || !pw || !confirmPw) {
                 showAuthError('Por favor completa todos los campos.');
                 return;
             }
@@ -1012,28 +1050,103 @@
                 return;
             }
 
-            if (dbState.users.some(u => u.username.toLowerCase() === un.toLowerCase())) {
-                showAuthError('Este nombre de usuario ya está registrado.');
+            // Uniqueness validation for username
+            if (usersRegistry.some(u => u.username.toLowerCase() === un.toLowerCase())) {
+                showAuthError(`⚠️ El nombre de usuario "${un}" ya se encuentra registrado. Elige otro nombre distinto.`);
                 return;
             }
 
-            const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: un, password_hash: pw };
-            dbState.users.push(newUser);
-            saveState();
+            // Uniqueness validation for email
+            if (usersRegistry.some(u => u.email && u.email.toLowerCase() === email)) {
+                showAuthError(`⚠️ El correo electrónico "${email}" ya está asociado a otra cuenta.`);
+                return;
+            }
 
-            // Try backend API registration
-            try {
-                await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: un, password: pw })
-                });
-            } catch(err) {}
+            const newUser = { 
+                id: 'u_' + Math.random().toString(36).substr(2,6), 
+                username: un, 
+                email: email, 
+                password_hash: pw 
+            };
 
-            showAuthSuccess('¡Cuenta creada exitosamente! Iniciando sesión...');
+            usersRegistry.push(newUser);
+            localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+
+            showAuthSuccess('¡Cuenta creada exitosamente! Iniciando tu panel de gestión...');
             setTimeout(() => {
-                setSession({ id: newUser.id, username: un });
+                setSession(newUser);
             }, 700);
+        }
+
+        let recoveringUser = null;
+
+        function verifyAccountForRecovery() {
+            hideAuthMessages();
+            const inputVal = document.getElementById('auth-recover-input').value.trim().toLowerCase();
+            if (!inputVal) {
+                showAuthError('Por favor ingresa tu usuario o correo electrónico.');
+                return;
+            }
+
+            const found = usersRegistry.find(u => 
+                u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)
+            );
+
+            if (!found) {
+                showAuthError('No se encontró ninguna cuenta con ese nombre de usuario o correo electrónico.');
+                return;
+            }
+
+            recoveringUser = found;
+            document.getElementById('recover-step-1').style.display = 'none';
+            document.getElementById('recover-step-2').style.display = 'block';
+            document.getElementById('recover-account-info').innerHTML = `
+                <strong><i class="fa-solid fa-user-check" style="color:var(--success);"></i> Cuenta encontrada:</strong><br>
+                Usuario: <strong>${found.username}</strong><br>
+                Email: <strong>${found.email || 'Registrado'}</strong>
+            `;
+        }
+
+        function handleRecoverSubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+            const newPw = document.getElementById('auth-recover-new-password').value.trim();
+            const confirmPw = document.getElementById('auth-recover-confirm-password').value.trim();
+
+            if (!newPw || !confirmPw) {
+                showAuthError('Por favor completa la nueva contraseña.');
+                return;
+            }
+
+            if (newPw !== confirmPw) {
+                showAuthError('Las contraseñas no coinciden.');
+                return;
+            }
+
+            if (newPw.length < 4) {
+                showAuthError('La contraseña debe tener al menos 4 caracteres.');
+                return;
+            }
+
+            if (!recoveringUser) {
+                showAuthError('Ocurrió un error. Intenta nuevamente.');
+                return;
+            }
+
+            // Update user password in registry
+            const uIdx = usersRegistry.findIndex(u => u.id === recoveringUser.id);
+            if (uIdx !== -1) {
+                usersRegistry[uIdx].password_hash = newPw;
+                localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+            }
+
+            showAuthSuccess('¡Contraseña restablecida con éxito! Ya puedes iniciar sesión.');
+            setTimeout(() => {
+                document.getElementById('auth-login-username').value = recoveringUser.username;
+                document.getElementById('auth-login-password').value = newPw;
+                switchAuthTab('login');
+            }, 1200);
+        }
         }
 
         function setSession(user) {
