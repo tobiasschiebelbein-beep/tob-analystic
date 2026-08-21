@@ -1076,22 +1076,29 @@
             const portal = document.getElementById('auth-portal');
             if (!portal) return;
 
-            if (!currentUser) {
+            if (!currentUser || typeof currentUser !== 'object' || Array.isArray(currentUser)) {
                 try {
                     const stored = localStorage.getItem('fitmetrics_user');
                     if (stored) currentUser = JSON.parse(stored);
                 } catch(e) { currentUser = null; }
             }
 
+            if (currentUser && typeof currentUser === 'object' && !currentUser.username) {
+                currentUser.username = currentUser.email ? currentUser.email.split('@')[0] : 'admin';
+                try { localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser)); } catch(e) {}
+            }
+
             if (!currentUser || !currentUser.username) {
-                portal.style.display = 'flex';
+                portal.style.setProperty('display', 'flex', 'important');
+                portal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             } else {
-                portal.style.display = 'none';
+                portal.style.setProperty('display', 'none', 'important');
+                portal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
                 const nameEl = document.getElementById('user-display-name');
                 const avatarEl = document.getElementById('user-avatar');
-                const uname = currentUser.username || 'Usuario';
+                const uname = currentUser.username || 'admin';
                 if (nameEl) nameEl.innerText = uname;
                 if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
                 try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
@@ -1428,8 +1435,12 @@
         }
 
         function setSession(user) {
-            if (!user) return;
-            if (!user.username) user.username = 'admin';
+            if (!user || typeof user !== 'object') {
+                user = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+            }
+            if (!user.username) {
+                user.username = user.email ? user.email.split('@')[0] : 'admin';
+            }
             currentUser = user;
             try {
                 localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
@@ -1437,8 +1448,9 @@
 
             const portal = document.getElementById('auth-portal');
             if (portal) {
-                portal.style.display = 'none';
-                portal.style.visibility = 'hidden';
+                portal.style.setProperty('display', 'none', 'important');
+                portal.style.setProperty('visibility', 'hidden', 'important');
+                portal.classList.add('hidden');
             }
             document.body.style.overflow = 'auto';
 
