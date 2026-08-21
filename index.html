@@ -989,6 +989,9 @@
 
         let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || null;
         let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
+        let currentMemberFilter = 'ALL';
+        let currentExpenseFilter = 'ALL';
+        let chartInstance = null;
 
         function getStorageKey() {
             if (currentUser && currentUser.id) {
@@ -1581,7 +1584,6 @@
 
             document.getElementById('members-table-body').innerHTML = filteredMembers.map(m => {
                 const plan = dbState.plans.find(p => p.id === m.plan_id);
-                const workoutPlan = (dbState.workout_plans || []).find(wp => wp.id === m.workout_plan_id);
                 const status = getMemberStatus(m.expire_date);
                 const isBday = isBirthdayToday(m.birthdate);
                 const waUrl = getWhatsAppUrl(m.phone, m.name);
@@ -1597,24 +1599,23 @@
                         </td>
                         <td>${formatBirthdate(m.birthdate)} ${calculateAge(m.birthdate) ? `<span style="font-size:0.75rem; color:var(--text-muted);">(${calculateAge(m.birthdate)})</span>` : ''}</td>
                         <td>
-                            <span style="font-size:0.8rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${plan ? plan.name : 'Sin Plan'}</span>
-                            ${workoutPlan ? `<br><span style="font-size:0.72rem; color:var(--primary); font-weight:700;"><i class="fa-solid fa-dumbbell"></i> ${workoutPlan.name}</span>` : ''}
+                            <span style="font-size:0.8rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${plan ? `${plan.name} (${plan.workout_type || 'General'})` : 'Sin Plan'}</span>
+                            ${plan ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:700;">$${formatMoney(plan.price)}</span>` : ''}
                         </td>
                         <td>${m.start_date}</td>
                         <td><strong>${m.expire_date}</strong></td>
                         <td><span class="status-badge ${status}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${status}</span></td>
                         <td>
                             <div style="display:flex; gap:0.3rem;">
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRoutineModal('${m.id}')" title="Ver / Enviar Rutina de Entrenamiento"><i class="fa-solid fa-dumbbell"></i> Rutina</button>
                                 ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn btn-wa-icon" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membresía"><i class="fa-solid fa-rotate-right"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membresía"><i class="fa-solid fa-rotate-right"></i> Renovar</button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i> Editar</button>
                                 <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteMember('${m.id}')" title="Eliminar Socio"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </td>
                     </tr>
                 `;
-            }).join('') || '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios en esta vista.</td></tr>';
+            }).join('') || '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios registrados. ¡Haz clic en "+ Nuevo Socio" para registrar uno!</td></tr>';
 
             // Birthday Calendar Table View
             const todaySec = document.getElementById('birthday-today-section');
@@ -1662,19 +1663,19 @@
                 `;
             }).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay fechas de nacimiento registradas. Completa la fecha de nacimiento al editar o crear socios.</td></tr>';
 
-            // Plans
+            // Unified Plans Grid
             document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
                 <div class="plan-card">
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem;">
                             <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
                             <div style="display:flex; gap:0.4rem; flex-shrink:0;">
-                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i> Editar</button>
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i> Eliminar</button>
                             </div>
                         </div>
                         <div style="font-size:0.88rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">
-                            🏋️‍♂️ ${p.workout_type || 'Entrenamiento General'}
+                            🏋️‍♂️ Tipo de Entrenamiento: ${p.workout_type || 'General'}
                         </div>
                         <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space:pre-wrap;">${p.description || 'Sin descripción'}</div>
                     </div>
