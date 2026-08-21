@@ -125,6 +125,33 @@
             box-shadow: 0 4px 15px var(--primary-glow);
         }
 
+        .email-sim-box {
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px dashed var(--primary);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-size: 0.88rem;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .email-sim-code {
+            display: inline-block;
+            background: #0f172a;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 5px;
+            padding: 0.35rem 0.9rem;
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
         /* Sidebar Styles */
         .sidebar {
             width: var(--sidebar-width);
@@ -488,13 +515,16 @@
             <p style="font-size: 0.88rem; color: var(--text-muted);">Plataforma de Inteligencia y Gestión</p>
 
             <div class="auth-tabs">
-                <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
-                <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</button>
-                <button id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover')">Recuperar</button>
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login'); return false;">Iniciar Sesión</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthTab('register'); return false;">Crear Cuenta</button>
+                <button type="button" id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover'); return false;">Recuperar</button>
             </div>
 
             <div id="auth-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
             <div id="auth-success-msg" style="display:none; color: var(--success); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
+
+            <!-- Email Simulation Notification Container -->
+            <div id="auth-email-sim-container" style="display:none;"></div>
 
             <!-- Login Form -->
             <form id="form-login" onsubmit="handleLoginSubmit(event)">
@@ -506,22 +536,25 @@
                     <label>Contraseña</label>
                     <input type="password" id="auth-login-password" class="form-control" placeholder="••••••••" required>
                     <div style="text-align: right; margin-top: 0.4rem;">
-                        <a href="#" onclick="switchAuthTab('recover')" style="color: var(--primary); font-size: 0.82rem; text-decoration: none; font-weight: 500;">¿Olvidaste tu contraseña?</a>
+                        <a href="#" onclick="switchAuthTab('recover'); return false;" style="color: var(--primary); font-size: 0.82rem; text-decoration: none; font-weight: 500;">¿Olvidaste tu contraseña?</a>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
                     <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
                 </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ¿No tienes cuenta todavía? <a href="#" onclick="switchAuthTab('register'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Crear una cuenta</a>
+                </div>
             </form>
 
-            <!-- Register Form -->
-            <form id="form-register" style="display: none;" onsubmit="handleRegisterSubmit(event)">
+            <!-- Register Form Step 1: Input details -->
+            <form id="form-register" style="display: none;" onsubmit="handleRegisterStep1(event)">
                 <div class="form-group">
                     <label>Nombre de Usuario (Único para tu gimnasio)</label>
                     <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: gimnasio_central" required>
                 </div>
                 <div class="form-group">
-                    <label>Correo Electrónico (Email para recuperación)</label>
+                    <label>Correo Electrónico (Email real para verificación)</label>
                     <input type="email" id="auth-reg-email" class="form-control" placeholder="Ej: contacto@gimnasio.com" required>
                 </div>
                 <div class="form-group">
@@ -533,8 +566,33 @@
                     <input type="password" id="auth-reg-confirm" class="form-control" placeholder="Repite tu contraseña" required>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
-                    <i class="fa-solid fa-user-plus"></i> Crear Cuenta
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Código de Verificación
                 </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ¿Ya tienes una cuenta? <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Iniciar Sesión</a>
+                </div>
+            </form>
+
+            <!-- Register Form Step 2: Code Verification -->
+            <form id="form-register-verify" style="display: none;" onsubmit="handleRegisterVerifySubmit(event)">
+                <div style="text-align: left; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Ingresa el <strong>código de verificación de 6 dígitos</strong> enviado a tu correo electrónico para activar la cuenta.
+                </div>
+                <div class="form-group">
+                    <label>Código de Verificación (6 dígitos)</label>
+                    <input type="text" id="auth-reg-code-input" class="form-control" placeholder="Ej: 849201" maxlength="6" style="letter-spacing: 4px; font-size: 1.25rem; text-align: center; font-weight: 800;" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                    <i class="fa-solid fa-circle-check"></i> Verificar Código y Crear Cuenta
+                </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="resendRegistrationCode()">
+                        <i class="fa-solid fa-rotate"></i> Reenviar Código
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="switchAuthTab('register')">
+                        <i class="fa-solid fa-arrow-left"></i> Cambiar Datos
+                    </button>
+                </div>
             </form>
 
             <!-- Recover Password Form -->
@@ -542,14 +600,18 @@
                 <div id="recover-step-1">
                     <div class="form-group">
                         <label>Ingresa tu Email o Usuario Registrado</label>
-                        <input type="text" id="auth-recover-input" class="form-control" placeholder="Ej: admin@fitmetrics.com o admin">
+                        <input type="text" id="auth-recover-input" class="form-control" placeholder="Ej: contacto@gimnasio.com o admin">
                     </div>
                     <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="verifyAccountForRecovery()">
-                        <i class="fa-solid fa-magnifying-glass"></i> Buscar Cuenta
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Código a mi Email
                     </button>
                 </div>
                 <div id="recover-step-2" style="display: none;">
                     <div id="recover-account-info" style="background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: #fff; margin-bottom: 1rem; text-align: left;"></div>
+                    <div class="form-group">
+                        <label>Código de Recuperación (6 dígitos)</label>
+                        <input type="text" id="auth-recover-code-input" class="form-control" placeholder="Ej: 719304" maxlength="6" style="letter-spacing: 4px; font-size: 1.15rem; text-align: center; font-weight: 800;">
+                    </div>
                     <div class="form-group">
                         <label>Nueva Contraseña</label>
                         <input type="password" id="auth-recover-new-password" class="form-control" placeholder="Escribe tu nueva contraseña">
@@ -559,8 +621,11 @@
                         <input type="password" id="auth-recover-confirm-password" class="form-control" placeholder="Repite tu nueva contraseña">
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
-                        <i class="fa-solid fa-key"></i> Restablecer Contraseña
+                        <i class="fa-solid fa-key"></i> Validar Código y Restablecer
                     </button>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Volver a Iniciar Sesión</a>
                 </div>
             </form>
         </div>
@@ -968,13 +1033,43 @@
             }
         }
 
+        let pendingRegistration = null;
+        let recoveringData = null;
+
+        function showSimulatedEmailNotification(recipientEmail, code, typeTitle) {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (!simBox) return;
+            simBox.style.display = 'block';
+            simBox.innerHTML = `
+                <div class="email-sim-box">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+                        <span style="font-weight:700; color:var(--primary); font-size:0.82rem;">📧 ${typeTitle}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">Para: ${recipientEmail}</span>
+                    </div>
+                    <div style="font-size:0.85rem; color:#fff;">Tu código de seguridad de 6 dígitos es:</div>
+                    <div style="text-align:center;">
+                        <span class="email-sim-code">${code}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem; text-align:center;">
+                        (Ingresa este código en la pantalla para confirmar)
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideSimulatedEmailNotification() {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (simBox) simBox.style.display = 'none';
+        }
+
         function switchAuthTab(tab) {
             document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register' || tab === 'register-verify');
             document.getElementById('tab-recover').classList.toggle('active', tab === 'recover');
 
             document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
             document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('form-register-verify').style.display = tab === 'register-verify' ? 'block' : 'none';
             document.getElementById('form-recover').style.display = tab === 'recover' ? 'block' : 'none';
             
             if (tab === 'recover') {
@@ -982,6 +1077,11 @@
                 document.getElementById('recover-step-2').style.display = 'none';
                 document.getElementById('auth-recover-input').value = '';
             }
+
+            if (tab !== 'register-verify' && tab !== 'recover') {
+                hideSimulatedEmailNotification();
+            }
+
             hideAuthMessages();
         }
 
@@ -1029,7 +1129,7 @@
             }
         }
 
-        async function handleRegisterSubmit(e) {
+        function handleRegisterStep1(e) {
             e.preventDefault();
             hideAuthMessages();
             const un = document.getElementById('auth-reg-username').value.trim();
@@ -1064,23 +1164,64 @@
                 return;
             }
 
-            const newUser = { 
-                id: 'u_' + Math.random().toString(36).substr(2,6), 
-                username: un, 
-                email: email, 
-                password_hash: pw 
+            // Generate random 6-digit verification code
+            const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+            pendingRegistration = {
+                id: 'u_' + Math.random().toString(36).substr(2,6),
+                username: un,
+                email: email,
+                password_hash: pw,
+                code: verifyCode
+            };
+
+            switchAuthTab('register-verify');
+            showSimulatedEmailNotification(email, verifyCode, 'NOTIFICACIÓN DE VERIFICACIÓN DE CORREO');
+            showAuthSuccess(`¡Código enviado a ${email}! Ingresa los 6 dígitos a continuación.`);
+        }
+
+        function resendRegistrationCode() {
+            if (!pendingRegistration) return;
+            const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+            pendingRegistration.code = newCode;
+            showSimulatedEmailNotification(pendingRegistration.email, newCode, 'CÓDIGO REENVIADO A TU EMAIL');
+            showAuthSuccess('Se ha reenviado un nuevo código a tu correo electrónico.');
+        }
+
+        function handleRegisterVerifySubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+
+            if (!pendingRegistration) {
+                showAuthError('No hay ningún registro pendiente. Vuelve a intentar.');
+                switchAuthTab('register');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-reg-code-input').value.trim();
+            if (enteredCode !== pendingRegistration.code) {
+                showAuthError('❌ El código de 6 dígitos ingresado es incorrecto. Verifica el código enviado a tu email.');
+                return;
+            }
+
+            const newUser = {
+                id: pendingRegistration.id,
+                username: pendingRegistration.username,
+                email: pendingRegistration.email,
+                password_hash: pendingRegistration.password_hash,
+                is_verified: true
             };
 
             usersRegistry.push(newUser);
             localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+            pendingRegistration = null;
 
-            showAuthSuccess('¡Cuenta creada exitosamente! Iniciando tu panel de gestión...');
+            hideSimulatedEmailNotification();
+            showAuthSuccess('¡Correo verificado con éxito! Cuenta activada. Entrando...');
             setTimeout(() => {
                 setSession(newUser);
-            }, 700);
+            }, 800);
         }
-
-        let recoveringUser = null;
 
         function verifyAccountForRecovery() {
             hideAuthMessages();
@@ -1095,11 +1236,13 @@
             );
 
             if (!found) {
-                showAuthError('No se encontró ninguna cuenta con ese nombre de usuario o correo electrónico.');
+                showAuthError('No se encontró ninguna cuenta registrada con ese usuario o correo electrónico.');
                 return;
             }
 
-            recoveringUser = found;
+            const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+            recoveringData = { user: found, code: recoveryCode };
+
             document.getElementById('recover-step-1').style.display = 'none';
             document.getElementById('recover-step-2').style.display = 'block';
             document.getElementById('recover-account-info').innerHTML = `
@@ -1107,16 +1250,31 @@
                 Usuario: <strong>${found.username}</strong><br>
                 Email: <strong>${found.email || 'Registrado'}</strong>
             `;
+
+            showSimulatedEmailNotification(found.email || found.username, recoveryCode, 'CÓDIGO DE RECUPERACIÓN DE CONTRASEÑA');
+            showAuthSuccess('Se ha enviado el código de 6 dígitos a tu correo electrónico.');
         }
 
         function handleRecoverSubmit(e) {
             e.preventDefault();
             hideAuthMessages();
+
+            if (!recoveringData) {
+                showAuthError('Error de recuperación. Intenta nuevamente.');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-recover-code-input').value.trim();
             const newPw = document.getElementById('auth-recover-new-password').value.trim();
             const confirmPw = document.getElementById('auth-recover-confirm-password').value.trim();
 
-            if (!newPw || !confirmPw) {
-                showAuthError('Por favor completa la nueva contraseña.');
+            if (!enteredCode || !newPw || !confirmPw) {
+                showAuthError('Por favor completa todos los campos.');
+                return;
+            }
+
+            if (enteredCode !== recoveringData.code) {
+                showAuthError('❌ El código de recuperación de 6 dígitos es incorrecto.');
                 return;
             }
 
@@ -1130,22 +1288,19 @@
                 return;
             }
 
-            if (!recoveringUser) {
-                showAuthError('Ocurrió un error. Intenta nuevamente.');
-                return;
-            }
-
             // Update user password in registry
-            const uIdx = usersRegistry.findIndex(u => u.id === recoveringUser.id);
+            const uIdx = usersRegistry.findIndex(u => u.id === recoveringData.user.id);
             if (uIdx !== -1) {
                 usersRegistry[uIdx].password_hash = newPw;
                 localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
             }
 
-            showAuthSuccess('¡Contraseña restablecida con éxito! Ya puedes iniciar sesión.');
+            hideSimulatedEmailNotification();
+            showAuthSuccess('¡Contraseña restablecida con éxito! Redirigiendo...');
             setTimeout(() => {
-                document.getElementById('auth-login-username').value = recoveringUser.username;
+                document.getElementById('auth-login-username').value = recoveringData.user.username;
                 document.getElementById('auth-login-password').value = newPw;
+                recoveringData = null;
                 switchAuthTab('login');
             }, 1200);
         }
