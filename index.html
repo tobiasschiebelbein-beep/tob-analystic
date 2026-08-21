@@ -1033,25 +1033,89 @@
             }
         }
 
+        let currentTab = 'dashboard';
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const titles = {
+                'dashboard': 'Dashboard General',
+                'access': 'Control de Acceso / Molinete',
+                'members': 'Gestión de Socios',
+                'birthdays': 'Calendario de Cumpleaños 🎂',
+                'plans': 'Planes de Membresía',
+                'payments': 'Cobranzas e Ingresos',
+                'expenses': 'Control de Gastos (Fijos y Variables)'
+            };
+
+            const titleEl = document.getElementById('topbar-title');
+            if (titleEl && titles[tabId]) {
+                titleEl.innerText = titles[tabId];
+            }
+
+            const navItems = document.querySelectorAll('.nav-menu .nav-item');
+            navItems.forEach(item => {
+                const clickAttr = item.getAttribute('onclick') || '';
+                if (clickAttr.includes(`'${tabId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            const panels = document.querySelectorAll('.view-panel');
+            panels.forEach(panel => {
+                if (panel.id === `view-${tabId}`) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+
+            renderAll();
+        }
+
+        async function sendRealEmailCode(recipientEmail, code, subject, bodyMessage) {
+            try {
+                await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: 'e4635a96-6e42-4f38-95ef-f89a930fb872',
+                        email: recipientEmail,
+                        subject: subject,
+                        message: `${bodyMessage}\n\nTu Código de Seguridad de 6 dígitos es: ${code}\n\nEste código es único para verificar tu cuenta en FitMetrics.`
+                    })
+                });
+            } catch(e) {}
+
+            try {
+                await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipientEmail)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: subject,
+                        message: `${bodyMessage}\n\nTu Código de Seguridad FitMetrics es: ${code}`
+                    })
+                });
+            } catch(e) {}
+        }
+
         let pendingRegistration = null;
         let recoveringData = null;
 
-        function showSimulatedEmailNotification(recipientEmail, code, typeTitle) {
+        function showEmailSentAlert(recipientEmail) {
             const simBox = document.getElementById('auth-email-sim-container');
             if (!simBox) return;
             simBox.style.display = 'block';
             simBox.innerHTML = `
                 <div class="email-sim-box">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
-                        <span style="font-weight:700; color:var(--primary); font-size:0.82rem;">📧 ${typeTitle}</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted);">Para: ${recipientEmail}</span>
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem;">
+                        <i class="fa-solid fa-paper-plane" style="color:var(--primary); font-size:1.1rem;"></i>
+                        <span style="font-weight:700; color:#fff; font-size:0.9rem;">¡Código enviado por Correo Electrónico!</span>
                     </div>
-                    <div style="font-size:0.85rem; color:#fff;">Tu código de seguridad de 6 dígitos es:</div>
-                    <div style="text-align:center;">
-                        <span class="email-sim-code">${code}</span>
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem; text-align:center;">
-                        (Ingresa este código en la pantalla para confirmar)
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+                        Enviamos un código de 6 dígitos a: <strong style="color:var(--primary);">${recipientEmail}</strong>.<br>
+                        Por favor revisa tu <strong>Bandeja de Entrada</strong> o carpeta de <strong>Spam / Correo no deseado</strong> para obtener tu código.
                     </div>
                 </div>
             `;
@@ -1129,7 +1193,7 @@
             }
         }
 
-        function handleRegisterStep1(e) {
+        async function handleRegisterStep1(e) {
             e.preventDefault();
             hideAuthMessages();
             const un = document.getElementById('auth-reg-username').value.trim();
@@ -1175,16 +1239,20 @@
                 code: verifyCode
             };
 
+            // Dispatch real email via web service
+            sendRealEmailCode(email, verifyCode, 'Código de Verificación de Cuenta - FitMetrics', `¡Hola ${un}! Te enviamos el código de 6 dígitos para verificar tu cuenta.`);
+
             switchAuthTab('register-verify');
-            showSimulatedEmailNotification(email, verifyCode, 'NOTIFICACIÓN DE VERIFICACIÓN DE CORREO');
-            showAuthSuccess(`¡Código enviado a ${email}! Ingresa los 6 dígitos a continuación.`);
+            showEmailSentAlert(email);
+            showAuthSuccess(`¡Enviamos el código a tu correo ${email}! Revísalo e ingrésalo a continuación.`);
         }
 
         function resendRegistrationCode() {
             if (!pendingRegistration) return;
             const newCode = Math.floor(100000 + Math.random() * 900000).toString();
             pendingRegistration.code = newCode;
-            showSimulatedEmailNotification(pendingRegistration.email, newCode, 'CÓDIGO REENVIADO A TU EMAIL');
+            sendRealEmailCode(pendingRegistration.email, newCode, 'Nuevo Código de Verificación - FitMetrics', `Hola, aquí tienes tu nuevo código de verificación de 6 dígitos.`);
+            showEmailSentAlert(pendingRegistration.email);
             showAuthSuccess('Se ha reenviado un nuevo código a tu correo electrónico.');
         }
 
@@ -1200,7 +1268,7 @@
 
             const enteredCode = document.getElementById('auth-reg-code-input').value.trim();
             if (enteredCode !== pendingRegistration.code) {
-                showAuthError('❌ El código de 6 dígitos ingresado es incorrecto. Verifica el código enviado a tu email.');
+                showAuthError('❌ El código de 6 dígitos ingresado es incorrecto. Verifica el correo electrónico que te enviamos.');
                 return;
             }
 
@@ -1217,13 +1285,13 @@
             pendingRegistration = null;
 
             hideSimulatedEmailNotification();
-            showAuthSuccess('¡Correo verificado con éxito! Cuenta activada. Entrando...');
+            showAuthSuccess('¡Correo verificado con éxito! Cuenta activada de por vida. Entrando...');
             setTimeout(() => {
                 setSession(newUser);
             }, 800);
         }
 
-        function verifyAccountForRecovery() {
+        async function verifyAccountForRecovery() {
             hideAuthMessages();
             const inputVal = document.getElementById('auth-recover-input').value.trim().toLowerCase();
             if (!inputVal) {
@@ -1243,6 +1311,9 @@
             const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
             recoveringData = { user: found, code: recoveryCode };
 
+            // Dispatch real email via web service
+            sendRealEmailCode(found.email || inputVal, recoveryCode, 'Recuperación de Contraseña - FitMetrics', `Hola ${found.username}, te enviamos el código para restablecer tu contraseña.`);
+
             document.getElementById('recover-step-1').style.display = 'none';
             document.getElementById('recover-step-2').style.display = 'block';
             document.getElementById('recover-account-info').innerHTML = `
@@ -1251,8 +1322,8 @@
                 Email: <strong>${found.email || 'Registrado'}</strong>
             `;
 
-            showSimulatedEmailNotification(found.email || found.username, recoveryCode, 'CÓDIGO DE RECUPERACIÓN DE CONTRASEÑA');
-            showAuthSuccess('Se ha enviado el código de 6 dígitos a tu correo electrónico.');
+            showEmailSentAlert(found.email || found.username);
+            showAuthSuccess('Enviamos el código de 6 dígitos a tu correo electrónico.');
         }
 
         function handleRecoverSubmit(e) {
