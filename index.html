@@ -852,19 +852,10 @@
                     <div class="form-group"><label>Teléfono (WhatsApp)</label><input type="text" id="m-phone" class="form-control" placeholder="Ej: 1122334455"></div>
                 </div>
                 <div class="form-group"><label>Fecha de Nacimiento 🎂</label><input type="date" id="m-birthdate" class="form-control"></div>
-                <div class="form-group"><label>Plan de Membresía (Cuota)</label><select id="m-plan" class="form-control" required onchange="calculateExpireDate()"></select></div>
-                <div class="form-group"><label>Plan de Entrenamiento / Rutina Asignada 🏋️‍♂️</label><select id="m-workout-plan" class="form-control"></select></div>
+                <div class="form-group"><label>Plan de Membresía</label><select id="m-plan" class="form-control" required onchange="calculateExpireDate()"></select></div>
                 <div class="form-row">
                     <div class="form-group"><label>Fecha Inicio</label><input type="date" id="m-start" class="form-control" required onchange="calculateExpireDate()"></div>
                     <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="m-expire" class="form-control" required></div>
-                </div>
-                <div class="form-group" id="m-pay-method-group"><label>Método de Pago del Primer Mes</label>
-                    <select id="m-pay-method" class="form-control">
-                        <option value="Efectivo">💵 Efectivo</option>
-                        <option value="Transferencia">🏦 Transferencia / Mercado Pago</option>
-                        <option value="Débito">💳 Tarjeta de Débito</option>
-                        <option value="Crédito">💳 Tarjeta de Crédito</option>
-                    </select>
                 </div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-member')">Cancelar</button>
@@ -984,6 +975,14 @@
                     <label>Descripción / Beneficios</label>
                     <input type="text" id="plan-description" class="form-control" placeholder="Acceso libre a máquinas y cardio">
                 </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-plan')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL: Crear / Editar Plan de Entrenamiento -->
     <div id="modal-workout-plan" class="modal-backdrop">
         <div class="modal-box" style="max-width: 650px;">
@@ -1924,8 +1923,6 @@
         function openMemberModal(memberId) {
             populatePlanSelects();
 
-            const payGroup = document.getElementById('m-pay-method-group');
-
             if (memberId) {
                 const m = dbState.members.find(x => x.id === memberId);
                 if (!m) return;
@@ -1938,14 +1935,8 @@
                 if (m.plan_id) {
                     document.getElementById('m-plan').value = m.plan_id;
                 }
-                if (m.workout_plan_id) {
-                    document.getElementById('m-workout-plan').value = m.workout_plan_id;
-                } else {
-                    document.getElementById('m-workout-plan').value = '';
-                }
                 document.getElementById('m-start').value = m.start_date;
                 document.getElementById('m-expire').value = m.expire_date;
-                if (payGroup) payGroup.style.display = 'none';
             } else {
                 document.getElementById('member-modal-title').innerText = 'Nuevo Socio';
                 document.getElementById('m-id').value = '';
@@ -1953,13 +1944,11 @@
                 document.getElementById('m-dni').value = '';
                 document.getElementById('m-phone').value = '';
                 document.getElementById('m-birthdate').value = '';
-                document.getElementById('m-workout-plan').value = '';
                 const todayStr = new Date().toISOString().split('T')[0];
                 document.getElementById('m-start').value = todayStr;
                 if (document.getElementById('m-plan').options.length > 0) {
                     document.getElementById('m-plan').selectedIndex = 0;
                 }
-                if (payGroup) payGroup.style.display = 'block';
                 calculateExpireDate();
             }
             openModal('modal-member');
@@ -1993,11 +1982,8 @@
             const phone = document.getElementById('m-phone').value.trim();
             const birthdate = document.getElementById('m-birthdate').value;
             const plan_id = document.getElementById('m-plan').value;
-            const workout_plan_id = document.getElementById('m-workout-plan').value;
             const start_date = document.getElementById('m-start').value;
             let expire_date = document.getElementById('m-expire').value;
-            const payMethodEl = document.getElementById('m-pay-method');
-            const payMethod = payMethodEl ? payMethodEl.value : 'Efectivo';
 
             if (!name || !dni || !plan_id) {
                 alert('Por favor completa el nombre, DNI y selecciona un plan de membresía.');
@@ -2023,7 +2009,6 @@
                     m.phone = phone;
                     m.birthdate = birthdate;
                     m.plan_id = plan_id;
-                    m.workout_plan_id = workout_plan_id;
                     m.start_date = start_date;
                     m.expire_date = expire_date;
                 }
@@ -2037,7 +2022,6 @@
                     phone: phone,
                     birthdate: birthdate,
                     plan_id: plan_id,
-                    workout_plan_id: workout_plan_id,
                     start_date: start_date,
                     expire_date: expire_date
                 };
@@ -2054,7 +2038,7 @@
                         plan_id: selectedPlan.id,
                         plan_name: selectedPlan.name,
                         amount: selectedPlan.price,
-                        method: payMethod,
+                        method: 'Efectivo',
                         date: todayStr,
                         note: 'Alta e inscripción de nuevo socio'
                     });
