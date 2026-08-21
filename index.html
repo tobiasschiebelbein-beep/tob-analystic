@@ -991,14 +991,14 @@
             if (currentUser && currentUser.id) {
                 return 'fitmetrics_db_' + currentUser.id;
             }
-            return 'fitmetrics_db_u_admin';
+            return 'fitmetrics_db_default';
         }
 
         function loadUserDatabase() {
             const key = getStorageKey();
             let stored = localStorage.getItem(key);
             if (!stored) {
-                stored = localStorage.getItem('fitmetrics_db');
+                stored = localStorage.getItem('fitmetrics_db_master') || localStorage.getItem('fitmetrics_db');
             }
 
             if (stored) {
@@ -1027,8 +1027,10 @@
 
         function saveState() {
             const key = getStorageKey();
-            localStorage.setItem(key, JSON.stringify(dbState));
-            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
+            const dataStr = JSON.stringify(dbState);
+            localStorage.setItem(key, dataStr);
+            localStorage.setItem('fitmetrics_db_master', dataStr);
+            localStorage.setItem('fitmetrics_db', dataStr);
             renderAll();
         }
 
@@ -2063,12 +2065,13 @@
             e.preventDefault();
             const id = document.getElementById('plan-id').value;
             const name = document.getElementById('plan-name').value.trim();
-            const price = parseFloat(document.getElementById('plan-price').value) || 0;
+            const rawPrice = document.getElementById('plan-price').value;
+            const price = parseFloat(rawPrice) || 0;
             const days = parseInt(document.getElementById('plan-days').value) || 30;
             const description = document.getElementById('plan-description').value.trim();
 
-            if (!name || !price) {
-                alert('Por favor ingresa un nombre y precio para el plan.');
+            if (!name) {
+                alert('Por favor ingresa un nombre para el plan.');
                 return;
             }
 
