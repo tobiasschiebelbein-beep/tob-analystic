@@ -61,6 +61,13 @@
             animation: fadeIn 0.3s ease;
         }
 
+        .auth-overlay.hidden {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
         .auth-card {
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid var(--border-glass);
@@ -515,9 +522,9 @@
             <p style="font-size: 0.88rem; color: var(--text-muted);">Plataforma de Inteligencia y Gestión</p>
 
             <div class="auth-tabs">
-                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login'); return false;">Iniciar Sesión</button>
-                <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthTab('register'); return false;">Crear Cuenta</button>
-                <button type="button" id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover'); return false;">Recuperar</button>
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</button>
+                <button type="button" id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover')">Recuperar</button>
             </div>
 
             <div id="auth-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
