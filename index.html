@@ -961,12 +961,33 @@
     </div>
 
     <script>
-        /* Global State Variables */
-        let usersRegistry = JSON.parse(localStorage.getItem('fitmetrics_users_registry')) || [
-            { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
-        ];
+        /* Safe LocalStorage Helper Functions */
+        function getSafeJSON(key, fallback) {
+            try {
+                const val = localStorage.getItem(key);
+                if (!val || val === 'undefined' || val === 'null') return fallback;
+                const parsed = JSON.parse(val);
+                return parsed !== null && parsed !== undefined ? parsed : fallback;
+            } catch(e) {
+                console.warn(`[FitMetrics Auth] Error parsing localStorage key "${key}":`, e);
+                return fallback;
+            }
+        }
 
-        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+        function setSafeJSON(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch(e) {
+                console.error(`[FitMetrics Auth] Error writing to localStorage key "${key}":`, e);
+            }
+        }
+
+        /* Global State Variables */
+        let usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+            { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+        ]);
+
+        let currentUser = getSafeJSON('fitmetrics_user', { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' });
         let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
         let currentMemberFilter = 'ALL';
         let currentExpenseFilter = 'ALL';
@@ -990,7 +1011,7 @@
                 try {
                     dbState = JSON.parse(stored);
                 } catch(e) {
-                    console.error('Error loading dbState:', e);
+                    console.error('[FitMetrics DB] Error loading dbState:', e);
                 }
             }
 
@@ -1029,7 +1050,7 @@
                     localStorage.setItem('fitmetrics_db_' + currentUser.id, dataStr);
                 }
             } catch(e) {
-                console.error('Error saving state:', e);
+                console.error('[FitMetrics DB] Error saving state:', e);
             }
             renderAll();
         }
@@ -1048,24 +1069,32 @@
 
         /* Authentication System Functions */
         function checkAuthSession() {
-            const portal = document.getElementById('auth-portal');
-            if (!currentUser || typeof currentUser !== 'object') {
-                currentUser = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
-                try { localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser)); } catch(e) {}
-            }
+            console.log('[FitMetrics Auth] Running checkAuthSession...');
+            try {
+                const portal = document.getElementById('auth-portal');
+                if (!currentUser || typeof currentUser !== 'object') {
+                    currentUser = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+                    setSafeJSON('fitmetrics_user', currentUser);
+                }
 
-            if (portal) {
-                portal.style.setProperty('display', 'none', 'important');
-                portal.classList.add('hidden');
-            }
-            document.body.style.overflow = 'auto';
+                if (portal) {
+                    portal.style.setProperty('display', 'none', 'important');
+                    portal.style.setProperty('visibility', 'hidden', 'important');
+                    portal.classList.add('hidden');
+                }
+                document.body.style.overflow = 'auto';
 
-            const nameEl = document.getElementById('user-display-name');
-            const avatarEl = document.getElementById('user-avatar');
-            const uname = currentUser.username || 'admin';
-            if (nameEl) nameEl.innerText = uname;
-            if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
-            try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
+                const nameEl = document.getElementById('user-display-name');
+                const avatarEl = document.getElementById('user-avatar');
+                const uname = currentUser.username || 'admin';
+                if (nameEl) nameEl.innerText = uname;
+                if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
+                try { loadUserDatabase(); } catch(e) { console.error('[FitMetrics Auth] DB load error in session check:', e); }
+                console.log('[FitMetrics Auth] checkAuthSession completed cleanly for user:', uname);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Critical error inside checkAuthSession:', err);
+                document.body.style.overflow = 'auto';
+            }
         }
 
         let currentTab = 'dashboard';
@@ -1161,110 +1190,140 @@
         }
 
         function switchAuthTab(tab) {
-            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-register').classList.toggle('active', tab === 'register' || tab === 'register-verify');
-            document.getElementById('tab-recover').classList.toggle('active', tab === 'recover');
-
-            document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
-            document.getElementById('form-register-verify').style.display = tab === 'register-verify' ? 'block' : 'none';
-            document.getElementById('form-recover').style.display = tab === 'recover' ? 'block' : 'none';
-            
-            if (tab === 'recover') {
-                document.getElementById('recover-step-1').style.display = 'block';
-                document.getElementById('recover-step-2').style.display = 'none';
-                document.getElementById('auth-recover-input').value = '';
-            }
-
-            if (tab !== 'register-verify' && tab !== 'recover') {
-                hideSimulatedEmailNotification();
-            }
-
             hideAuthMessages();
+            hideSimulatedEmailNotification();
+
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+            const tabRec = document.getElementById('tab-recover');
+
+            if (tabLogin) tabLogin.classList.toggle('active', tab === 'login');
+            if (tabReg) tabReg.classList.toggle('active', tab === 'register' || tab === 'register-verify');
+            if (tabRec) tabRec.classList.toggle('active', tab === 'recover');
+
+            const fLogin = document.getElementById('form-login');
+            const fReg = document.getElementById('form-register');
+            const fRegVer = document.getElementById('form-register-verify');
+            const fRec = document.getElementById('form-recover');
+
+            if (fLogin) fLogin.style.display = (tab === 'login') ? 'block' : 'none';
+            if (fReg) fReg.style.display = (tab === 'register') ? 'block' : 'none';
+            if (fRegVer) fRegVer.style.display = (tab === 'register-verify') ? 'block' : 'none';
+            if (fRec) fRec.style.display = (tab === 'recover') ? 'block' : 'none';
+
+            if (tab === 'recover') {
+                const s1 = document.getElementById('recover-step-1');
+                const s2 = document.getElementById('recover-step-2');
+                const recIn = document.getElementById('auth-recover-input');
+                if (s1) s1.style.display = 'block';
+                if (s2) s2.style.display = 'none';
+                if (recIn) recIn.value = '';
+            }
         }
 
         function hideAuthMessages() {
-            document.getElementById('auth-error-msg').style.display = 'none';
-            document.getElementById('auth-success-msg').style.display = 'none';
+            const errEl = document.getElementById('auth-error-msg');
+            const succEl = document.getElementById('auth-success-msg');
+            if (errEl) errEl.style.display = 'none';
+            if (succEl) succEl.style.display = 'none';
         }
 
         function showAuthError(msg) {
             hideAuthMessages();
             const errEl = document.getElementById('auth-error-msg');
-            errEl.innerText = msg;
-            errEl.style.display = 'block';
+            if (errEl) {
+                errEl.innerText = msg;
+                errEl.style.display = 'block';
+            }
         }
 
         function showAuthSuccess(msg) {
             hideAuthMessages();
             const succEl = document.getElementById('auth-success-msg');
-            succEl.innerText = msg;
-            succEl.style.display = 'block';
+            if (succEl) {
+                succEl.innerText = msg;
+                succEl.style.display = 'block';
+            }
         }
 
         async function handleLoginSubmit(e) {
-            if (e) e.preventDefault();
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            console.log('[FitMetrics Auth] handleLoginSubmit event triggered');
             hideAuthMessages();
 
-            const inputEl = document.getElementById('auth-login-username');
-            const pwEl = document.getElementById('auth-login-password');
-            const rawVal = inputEl ? inputEl.value.trim() : '';
-            const rawPw = pwEl ? pwEl.value.trim() : '';
-
-            const inputVal = rawVal.toLowerCase() || 'admin';
-            const pw = rawPw || 'admin123';
-
             try {
-                const storedReg = localStorage.getItem('fitmetrics_users_registry');
-                if (storedReg) usersRegistry = JSON.parse(storedReg);
-            } catch(err) {}
+                const inputEl = document.getElementById('auth-login-username');
+                const pwEl = document.getElementById('auth-login-password');
+                const rawVal = inputEl ? inputEl.value.trim() : '';
+                const rawPw = pwEl ? pwEl.value.trim() : '';
 
-            let user = usersRegistry.find(u => 
-                (u.username && u.username.toLowerCase() === inputVal) || 
-                (u.email && u.email.toLowerCase() === inputVal)
-            );
+                const inputVal = rawVal.toLowerCase() || 'admin';
+                const pw = rawPw || 'admin123';
 
-            if (user) {
-                setSession(user);
-            } else {
-                const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: inputVal, email: inputVal + '@fitmetrics.com', password_hash: pw };
-                usersRegistry.push(newUser);
-                try { localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry)); } catch(err) {}
-                setSession(newUser);
+                console.log('[FitMetrics Auth] Login submit details:', { username: inputVal });
+
+                usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+                    { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+                ]);
+
+                let user = usersRegistry.find(u => 
+                    (u.username && u.username.toLowerCase() === inputVal) || 
+                    (u.email && u.email.toLowerCase() === inputVal)
+                );
+
+                if (user) {
+                    console.log('[FitMetrics Auth] Existing user found in registry:', user.username);
+                    setSession(user);
+                } else {
+                    console.log('[FitMetrics Auth] New user registration on login:', inputVal);
+                    const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: inputVal, email: inputVal + '@fitmetrics.com', password_hash: pw };
+                    usersRegistry.push(newUser);
+                    setSafeJSON('fitmetrics_users_registry', usersRegistry);
+                    setSession(newUser);
+                }
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error inside handleLoginSubmit:', err);
+                showAuthError('Ocurrió un error al procesar el inicio de sesión. Por favor reintenta.');
             }
         }
 
         async function handleRegisterStep1(e) {
-            if (e) e.preventDefault();
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            console.log('[FitMetrics Auth] handleRegisterStep1 event triggered');
             hideAuthMessages();
 
-            const unEl = document.getElementById('auth-reg-username');
-            const emailEl = document.getElementById('auth-reg-email');
-            const pwEl = document.getElementById('auth-reg-password');
-
-            const rawUn = unEl ? unEl.value.trim() : '';
-            const rawEmail = emailEl ? emailEl.value.trim() : '';
-            const rawPw = pwEl ? pwEl.value.trim() : '';
-
-            const un = rawUn || 'usuario_fit';
-            const email = rawEmail || (un + '@fitmetrics.com');
-            const pw = rawPw || '123456';
-
             try {
-                const storedReg = localStorage.getItem('fitmetrics_users_registry');
-                if (storedReg) usersRegistry = JSON.parse(storedReg);
-            } catch(err) {}
+                const unEl = document.getElementById('auth-reg-username');
+                const emailEl = document.getElementById('auth-reg-email');
+                const pwEl = document.getElementById('auth-reg-password');
 
-            const newUser = {
-                id: 'u_' + Math.random().toString(36).substr(2,6),
-                username: un,
-                email: email,
-                password_hash: pw
-            };
+                const rawUn = unEl ? unEl.value.trim() : '';
+                const rawEmail = emailEl ? emailEl.value.trim() : '';
+                const rawPw = pwEl ? pwEl.value.trim() : '';
 
-            usersRegistry.push(newUser);
-            try { localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry)); } catch(err) {}
-            setSession(newUser);
+                const un = rawUn || 'usuario_fit';
+                const email = rawEmail || (un + '@fitmetrics.com');
+                const pw = rawPw || '123456';
+
+                usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+                    { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+                ]);
+
+                const newUser = {
+                    id: 'u_' + Math.random().toString(36).substr(2,6),
+                    username: un,
+                    email: email,
+                    password_hash: pw
+                };
+
+                usersRegistry.push(newUser);
+                setSafeJSON('fitmetrics_users_registry', usersRegistry);
+                console.log('[FitMetrics Auth] Account created successfully:', un);
+                setSession(newUser);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error in handleRegisterStep1:', err);
+                showAuthError('No se pudo crear la cuenta. Reintenta por favor.');
+            }
         }
 
         function resendRegistrationCode() {
@@ -1397,27 +1456,32 @@
         }
 
         function setSession(user) {
-            if (!user || typeof user !== 'object') {
-                user = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
-            }
-            if (!user.username) {
-                user.username = user.email ? user.email.split('@')[0] : 'admin';
-            }
-            currentUser = user;
+            console.log('[FitMetrics Auth] setSession called for user:', user);
             try {
-                localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
-            } catch(e) {}
+                if (!user || typeof user !== 'object') {
+                    user = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+                }
+                if (!user.username) {
+                    user.username = user.email ? user.email.split('@')[0] : 'admin';
+                }
+                currentUser = user;
+                setSafeJSON('fitmetrics_user', currentUser);
 
-            const portal = document.getElementById('auth-portal');
-            if (portal) {
-                portal.style.setProperty('display', 'none', 'important');
-                portal.style.setProperty('visibility', 'hidden', 'important');
-                portal.classList.add('hidden');
+                const portal = document.getElementById('auth-portal');
+                if (portal) {
+                    portal.style.setProperty('display', 'none', 'important');
+                    portal.style.setProperty('visibility', 'hidden', 'important');
+                    portal.classList.add('hidden');
+                }
+                document.body.style.overflow = 'auto';
+
+                checkAuthSession();
+                try { renderAll(); } catch(e) { console.error('[FitMetrics Auth] Render error in setSession:', e); }
+                console.log('[FitMetrics Auth] Session set successfully for:', currentUser.username);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error inside setSession:', err);
+                document.body.style.overflow = 'auto';
             }
-            document.body.style.overflow = 'auto';
-
-            checkAuthSession();
-            try { renderAll(); } catch(e) { console.error('Render error:', e); }
         }
 
         function logoutUser() {
