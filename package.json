@@ -1,9 +1,10 @@
 {
   "name": "gym-management-app",
   "version": "1.0.0",
+  "main": "server/index.js",
   "scripts": {
     "dev": "node server/index.js",
-    "build": "echo 'Build successful for Render deployment'",
+    "build": "echo 'Build completed successfully'",
     "server": "node server/index.js",
     "start": "node server/index.js"
   },

@@ -395,5 +395,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor TOB Analystic corriendo en el puerto ${PORT}`));
+const PORT = process.env.PORT || 10000;
+const HOST = '0.0.0.0';
+app.listen(PORT, HOST, () => console.log(`Servidor TOB Analystic corriendo en http://${HOST}:${PORT}`));
