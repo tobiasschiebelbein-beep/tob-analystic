@@ -40,11 +40,29 @@ if (sqlite3) {
 
     db = {
         serialize: function(cb) { if (cb) cb(); },
-        run: function(sql, params, cb) { if (typeof params === 'function') cb = params; saveStore(); if (cb) cb(null); },
+        run: function(sql, params, cb) {
+            if (typeof params === 'function') cb = params;
+            if (sql.includes('INSERT INTO users')) {
+                memoryStore.users.push({ id: params[0], username: params[1], email: params[2], password_hash: params[3] });
+            }
+            saveStore();
+            if (cb) cb(null);
+        },
         get: function(sql, params, cb) {
             if (typeof params === 'function') { cb = params; params = []; }
             if (sql.includes('users')) {
-                const u = memoryStore.users.find(x => x.username === params[0] && x.password_hash === params[1]);
+                if (sql.includes('LOWER(email) = ?')) {
+                    const u = memoryStore.users.find(x => (x.email || '').toLowerCase() === (params[0] || '').toLowerCase());
+                    return cb(null, u);
+                }
+                if (sql.includes('LOWER(username) = ?')) {
+                    const u = memoryStore.users.find(x => (x.username || '').toLowerCase() === (params[0] || '').toLowerCase());
+                    return cb(null, u);
+                }
+                const u = memoryStore.users.find(x => 
+                    ((x.username || '').toLowerCase() === (params[0] || '').toLowerCase() || (x.email || '').toLowerCase() === (params[0] || '').toLowerCase()) &&
+                    x.password_hash === params[2]
+                );
                 return cb(null, u);
             }
             if (sql.includes('plans')) return cb(null, { count: memoryStore.plans.length });
@@ -67,6 +85,7 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY, 
         username TEXT UNIQUE NOT NULL, 
+        email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL, 
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -121,27 +140,67 @@ db.serialize(() => {
         status TEXT NOT NULL, 
         time DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
-
-    // Seeding function removed to keep database clean and blank for new accounts
 });
 
 /* Rutas API de Autenticación... */
 app.post('/api/auth/register', (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
-    const id = 'u_' + uuidv4().slice(0, 8);
-    db.run(`INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)`, [id, username, password], function(err) {
-        if (err) return res.status(400).json({ error: 'El usuario ya existe' });
-        res.json({ success: true, id, username });
+    let { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'Usuario, correo electrónico y contraseña son requeridos.' });
+    }
+
+    username = username.trim().toLowerCase();
+    email = email.trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'El correo electrónico ingresado no tiene un formato válido.' });
+    }
+
+    db.get(`SELECT id FROM users WHERE LOWER(email) = ?`, [email], (err, existingEmail) => {
+        if (existingEmail) {
+            return res.status(409).json({ error: 'Este correo electrónico ya se encuentra registrado.' });
+        }
+
+        db.get(`SELECT id FROM users WHERE LOWER(username) = ?`, [username], (err, existingUser) => {
+            if (existingUser) {
+                return res.status(409).json({ error: 'Este nombre de usuario ya no está disponible.' });
+            }
+
+            const id = 'u_' + uuidv4().slice(0, 8);
+            db.run(`INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)`, 
+                [id, username, email, password], 
+                function(err) {
+                    if (err) {
+                        if (err.message && err.message.includes('email')) {
+                            return res.status(409).json({ error: 'Este correo electrónico ya se encuentra registrado.' });
+                        }
+                        if (err.message && err.message.includes('username')) {
+                            return res.status(409).json({ error: 'Este nombre de usuario ya no está disponible.' });
+                        }
+                        return res.status(500).json({ error: 'Error al registrar el usuario en la base de datos.' });
+                    }
+                    res.json({ success: true, id, username, email });
+                }
+            );
+        });
     });
 });
 
 app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
-    db.get(`SELECT * FROM users WHERE username = ? AND password_hash = ?`, [username, password], (err, user) => {
-        if (err || !user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
-        res.json({ success: true, user: { id: user.id, username: user.username } });
-    });
+    let { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Usuario o correo y contraseña requeridos.' });
+    }
+
+    const identifier = username.trim().toLowerCase();
+    db.get(`SELECT * FROM users WHERE (LOWER(username) = ? OR LOWER(email) = ?) AND password_hash = ?`, 
+        [identifier, identifier, password], 
+        (err, user) => {
+            if (err || !user) return res.status(401).json({ error: 'Usuario/email o contraseña incorrectos.' });
+            res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
+        }
+    );
 });
 
 /* Rutas API de Planes... */

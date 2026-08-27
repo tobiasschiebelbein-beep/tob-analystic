@@ -312,6 +312,10 @@
                     <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: mi_gimnasio" required>
                 </div>
                 <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="auth-reg-email" class="form-control" placeholder="ejemplo@gimnasio.com" required>
+                </div>
+                <div class="form-group">
                     <label>Contraseña</label>
                     <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea tu contraseña" required>
                 </div>
@@ -719,7 +723,7 @@
         async function handleLoginSubmit(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             hideAuthMessages();
-            const un = document.getElementById('auth-login-username').value.trim();
+            const un = document.getElementById('auth-login-username').value.trim().toLowerCase();
             const pw = document.getElementById('auth-login-password').value.trim();
 
             if (!un || !pw) {
@@ -737,12 +741,20 @@
                     const data = await res.json();
                     setSession(data.user);
                     return;
+                } else {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.error) {
+                        showAuthError(data.error);
+                        return;
+                    }
                 }
             } catch(err) {}
 
-            const user = (dbState.users || []).find(u => u.username.toLowerCase() === un.toLowerCase() && u.password_hash === pw);
-            if (user || (un.toLowerCase() === 'admin' && pw === 'admin123')) {
-                setSession({ id: user ? user.id : 'u_admin', username: un });
+            const user = (dbState.users || []).find(u => 
+                ((u.username || '').toLowerCase() === un || (u.email || '').toLowerCase() === un) && u.password_hash === pw
+            );
+            if (user || (un === 'admin' && pw === 'admin123')) {
+                setSession({ id: user ? user.id : 'u_admin', username: user ? user.username : 'admin', email: user ? user.email : 'admin@fitmetrics.com' });
             } else {
                 showAuthError('Usuario o contraseña incorrectos.');
             }
@@ -751,12 +763,19 @@
         async function handleRegisterSubmit(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             hideAuthMessages();
-            const un = document.getElementById('auth-reg-username').value.trim();
+            const un = document.getElementById('auth-reg-username').value.trim().toLowerCase();
+            const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
             const pw = document.getElementById('auth-reg-password').value.trim();
             const confirmPw = document.getElementById('auth-reg-confirm').value.trim();
 
-            if (!un || !pw || !confirmPw) {
+            if (!un || !email || !pw || !confirmPw) {
                 showAuthError('Por favor completa todos los campos.');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAuthError('El correo electrónico ingresado no tiene un formato válido.');
                 return;
             }
 
@@ -770,19 +789,41 @@
                 return;
             }
 
-            const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: un, password_hash: pw };
+            // Check local store for duplicate email or username
+            const allUsers = dbState.users || [];
+            if (allUsers.some(u => (u.email || '').toLowerCase() === email)) {
+                showAuthError('Este correo electrónico ya se encuentra registrado.');
+                return;
+            }
+            if (allUsers.some(u => (u.username || '').toLowerCase() === un)) {
+                showAuthError('Este nombre de usuario ya no está disponible.');
+                return;
+            }
+
+            const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: un, email: email, password_hash: pw };
             
             try {
-                await fetch(`${API_URL}/auth/register`, {
+                const res = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: un, password: pw })
+                    body: JSON.stringify({ username: un, email: email, password: pw })
                 });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.error) {
+                        showAuthError(data.error);
+                        return;
+                    }
+                }
             } catch(err) {}
+
+            if (!dbState.users) dbState.users = [];
+            dbState.users.push(newUser);
+            saveState();
 
             showAuthSuccess('¡Cuenta creada exitosamente! Iniciando sesión...');
             setTimeout(() => {
-                setSession({ id: newUser.id, username: un });
+                setSession({ id: newUser.id, username: un, email: email });
             }, 700);
         }
 
