@@ -122,22 +122,8 @@ db.serialize(() => {
         time DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Seed initial realistic gym data if tables are empty
-    db.get(`SELECT COUNT(*) as count FROM plans`, (err, row) => {
-        if (row && row.count === 0) {
-            console.log('Sembrando datos iniciales del gimnasio...');
-            seedInitialData();
-        }
-    });
+    // Seeding function removed to keep database clean and blank for new accounts
 });
-
-function seedInitialData() {
-    const p1 = 'p_101', p2 = 'p_102', p3 = 'p_103', p4 = 'p_104';
-    db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p1, 'Pase Libre Musculación', 28000, 30, 'Acceso ilimitado a salón de musculación y cardio']);
-    db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p2, 'Crossfit & Funcional', 35000, 30, 'Clases guiadas con coach de Crossfit y zona funcional']);
-    db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p3, 'Pase Cuatrimestral VIP', 95000, 120, '4 meses con beneficio de musculación + clases + locker']);
-    db.run(`INSERT INTO plans VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`, [p4, 'Pase Estudiantil (3d/sem)', 22000, 30, 'Acceso 3 días por semana en horario preferencial']);
-}
 
 /* Rutas API de Autenticación... */
 app.post('/api/auth/register', (req, res) => {
@@ -187,18 +173,6 @@ app.delete('/api/plans/:id', (req, res) => {
     db.run(`DELETE FROM plans WHERE id = ?`, [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
-    });
-});
-
-app.post('/api/plans/adjust-inflation', (req, res) => {
-    const { percentage } = req.body;
-    if (!percentage || isNaN(percentage)) {
-        return res.status(400).json({ error: 'Porcentaje inválido' });
-    }
-    const factor = 1 + (parseFloat(percentage) / 100);
-    db.run(`UPDATE plans SET price = ROUND(price * ? / 100) * 100`, [factor], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: 'Precios actualizados por inflación con éxito' });
     });
 });
 
@@ -259,6 +233,24 @@ app.post('/api/payments', (req, res) => {
     res.json({ success: true, id });
 });
 
+app.put('/api/payments/:id', (req, res) => {
+    const { member_id, plan_id, amount, method, date, note } = req.body;
+    db.run(`UPDATE payments SET member_id = ?, plan_id = ?, amount = ?, method = ?, date = ?, note = ? WHERE id = ?`, 
+        [member_id, plan_id, amount, method, date, note || '', req.params.id], 
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        }
+    );
+});
+
+app.delete('/api/payments/:id', (req, res) => {
+    db.run(`DELETE FROM payments WHERE id = ?`, [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
+});
+
 /* Rutas API de Gastos... */
 app.get('/api/expenses', (req, res) => {
     db.all(`SELECT * FROM expenses ORDER BY date DESC`, [], (err, rows) => res.json(rows || []));
@@ -272,6 +264,17 @@ app.post('/api/expenses', (req, res) => {
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ id, title, category, amount, date, status });
+        }
+    );
+});
+
+app.put('/api/expenses/:id', (req, res) => {
+    const { title, category, amount, date, status } = req.body;
+    db.run(`UPDATE expenses SET title = ?, category = ?, amount = ?, date = ?, status = ? WHERE id = ?`, 
+        [title, category, amount, date, status || 'PAGADO', req.params.id], 
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
         }
     );
 });

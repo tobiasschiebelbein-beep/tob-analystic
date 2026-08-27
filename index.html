@@ -191,7 +191,6 @@
         }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #0284c7); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
-        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: #fff; }
         .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid var(--border-glass); }
         .btn-logout { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .btn-logout:hover { background: var(--danger); color: #fff; }
@@ -359,6 +358,14 @@
             <div class="page-title"><h2 id="topbar-title">Dashboard General</h2></div>
             
             <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <!-- Month & Year Selector Widget -->
+                <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.3); padding: 0.35rem 0.65rem; border-radius: 12px; border: 1px solid var(--border-glass);">
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.45rem; font-size: 0.8rem;" onclick="navigateMonth(-1)" title="Mes Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                    <select id="month-select-filter" class="form-control" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.85rem; font-weight: 600; background: transparent; border: none; color: #fff; cursor: pointer;" onchange="handleMonthSelectChange(this.value)"></select>
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.45rem; font-size: 0.8rem;" onclick="navigateMonth(1)" title="Mes Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" onclick="resetToCurrentMonth()" title="Ir al Mes Actual">Hoy</button>
+                </div>
+
                 <!-- User Profile Session Badge with Logout -->
                 <div class="user-profile-widget">
                     <div id="user-avatar" class="user-avatar">A</div>
@@ -368,8 +375,6 @@
                     </button>
                 </div>
 
-                <button class="btn btn-secondary" onclick="exportSQLDump()"><i class="fa-solid fa-database"></i> Exportar SQL</button>
-                <button class="btn btn-warning" onclick="openInflationModal()"><i class="fa-solid fa-bolt"></i> Ajustar Inflación</button>
                 <button class="btn btn-primary" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Nuevo Socio</button>
             </div>
         </header>
@@ -386,14 +391,14 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos Totales</p><h3 id="kpi-income">$0</h3></div></div>
-                    <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados</p><h3 id="kpi-expenses">$0</h3></div></div>
-                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos del Mes</p><h3 id="kpi-income">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados (Mes)</p><h3 id="kpi-expenses">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes (Mes)</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
                     <div class="glass-card">
-                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-column"></i> Ingresos vs Gastos - TOB Analystic</div>
+                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-column"></i> Balance del Mes — <span id="chart-month-title">Agosto 2026</span></div>
                         <div style="height: 260px;"><canvas id="financeChart"></canvas></div>
                     </div>
                     <div class="glass-card">
@@ -455,9 +460,11 @@
             <!-- 5. PAYMENTS VIEW -->
             <div id="view-payments" class="view-panel">
                 <div class="glass-card">
-                    <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-receipt"></i> Historial de Cobranzas</div>
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-receipt"></i> Historial de Cobranzas</div>
+                    </div>
                     <table>
-                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th>Notas</th><th>Acción</th></tr></thead>
                         <tbody id="payments-table-body"></tbody>
                     </table>
                 </div>
@@ -529,24 +536,43 @@
         </div>
     </div>
 
-    <div id="modal-inflation" class="modal-backdrop">
+    <!-- MODAL: Editar Cobranza -->
+    <div id="modal-edit-payment" class="modal-backdrop">
         <div class="modal-box">
-            <h3 style="margin-bottom: 1rem;">Ajustar Precios por Inflación (%)</h3>
-            <form onsubmit="applyInflation(event)">
-                <div class="form-group"><label>Porcentaje de Aumento (%)</label><input type="number" step="0.5" id="inflation-percentage" class="form-control" placeholder="15" required></div>
+            <h3 style="margin-bottom: 1rem;">Editar Registro de Cobranza</h3>
+            <form onsubmit="savePaymentEdit(event)">
+                <input type="hidden" id="edit-pay-id">
+                <div class="form-group"><label>Socio</label><input type="text" id="edit-pay-member-name" class="form-control" required></div>
+                <div class="form-group"><label>Plan / Concepto</label><input type="text" id="edit-pay-plan-name" class="form-control" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="edit-pay-amount" class="form-control" required></div>
+                    <div class="form-group"><label>Método</label>
+                        <select id="edit-pay-method" class="form-control">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Mercado Pago">Mercado Pago</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha</label><input type="date" id="edit-pay-date" class="form-control" required></div>
+                    <div class="form-group"><label>Notas</label><input type="text" id="edit-pay-note" class="form-control"></div>
+                </div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-inflation')">Cancelar</button>
-                    <button type="submit" class="btn btn-warning" style="flex:1;">Aplicar Aumento</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-edit-payment')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- MODAL: Crear / Editar Gasto -->
     <div id="modal-expense" class="modal-backdrop">
         <div class="modal-box">
-            <h3 style="margin-bottom: 1rem;">Nuevo Gasto</h3>
+            <h3 id="expense-modal-title" style="margin-bottom: 1rem;">Nuevo Gasto</h3>
             <form onsubmit="saveExpense(event)">
-                <div class="form-group"><label>Concepto</label><input type="text" id="exp-title" class="form-control" required placeholder="Ej: Alquiler del Local"></div>
+                <input type="hidden" id="exp-id">
+                <div class="form-group"><label>Concepto / Título</label><input type="text" id="exp-title" class="form-control" required placeholder="Ej: Alquiler del Local"></div>
                 <div class="form-row">
                     <div class="form-group"><label>Categoría</label>
                         <select id="exp-category" class="form-control">
@@ -608,36 +634,42 @@
                 : 'https://tobanalystic.onrender.com/api');
 
         let currentUser = JSON.parse(localStorage.getItem('tob_analystic_user')) || { id: 'u_admin', username: 'admin' };
+        let selectedMonthStr = new Date().toISOString().substring(0, 7); // 'YYYY-MM'
 
-        let dbState = JSON.parse(localStorage.getItem('tob_analystic_db')) || {
-            users: [
-                { id: 'u_admin', username: 'admin', password_hash: 'admin123' }
-            ],
-            plans: [
-                { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a salón de musculación, peso libre y cardio.' },
-                { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por profesores, alta intensidad y acondicionamiento.' },
-                { id: 'p_103', name: 'Pase Cuatrimestral VIP', price: 95000, days: 120, description: '4 meses con beneficio de musculación + clases guiadas' }
-            ],
-            members: [
-                { id: 'm_201', name: 'Carlos Rodríguez', dni: '35123456', phone: '+54 9 11 4589-1234', plan_id: 'p_101', start_date: '2026-08-01', expire_date: '2026-09-30' },
-                { id: 'm_202', name: 'Mariana Gómez', dni: '38987654', phone: '+54 9 11 7812-9900', plan_id: 'p_102', start_date: '2026-08-05', expire_date: '2026-09-30' },
-                { id: 'm_203', name: 'Lucas Martínez', dni: '32456789', phone: '+54 9 11 3344-5566', plan_id: 'p_101', start_date: '2026-06-01', expire_date: '2026-08-15' }
-            ],
-            payments: [
-                { id: 'pay_301', member_id: 'm_201', member_name: 'Carlos Rodríguez', plan_id: 'p_101', plan_name: 'Pase Libre Musculación', amount: 28000, method: 'Mercado Pago', date: '2026-08-01 14:30', note: 'Cuota mensual' },
-                { id: 'pay_302', member_id: 'm_202', member_name: 'Mariana Gómez', plan_id: 'p_102', plan_name: 'Crossfit & Funcional', amount: 35000, method: 'Efectivo', date: '2026-08-05 10:15', note: 'Cuota mensual' }
-            ],
-            expenses: [
-                { id: 'exp_401', title: 'Alquiler Salón Principal', category: 'Alquiler', amount: 450000, date: '2026-08-01', status: 'PAGADO' },
-                { id: 'exp_402', title: 'Servicio de Luz', category: 'Servicios', amount: 85000, date: '2026-08-05', status: 'PAGADO' },
-                { id: 'exp_403', title: 'Limpieza e Insumos', category: 'Insumos', amount: 25000, date: '2026-08-18', status: 'PENDIENTE' }
-            ],
-            access_logs: []
-        };
+        function getStorageKey() {
+            return 'tob_analystic_db_' + (currentUser && currentUser.id ? currentUser.id : 'guest');
+        }
+
+        // Initial blank state for new users
+        let dbState = getBlankStore();
+
+        function getBlankStore() {
+            return { users: [], plans: [], members: [], payments: [], expenses: [], access_logs: [] };
+        }
+
+        function loadUserDatabase() {
+            const key = getStorageKey();
+            const stored = localStorage.getItem(key);
+            if (stored) {
+                try {
+                    dbState = JSON.parse(stored);
+                } catch(e) {
+                    dbState = getBlankStore();
+                }
+            } else {
+                dbState = getBlankStore();
+            }
+            if (!dbState.plans) dbState.plans = [];
+            if (!dbState.members) dbState.members = [];
+            if (!dbState.payments) dbState.payments = [];
+            if (!dbState.expenses) dbState.expenses = [];
+            if (!dbState.access_logs) dbState.access_logs = [];
+        }
 
         function saveState() {
             try {
-                localStorage.setItem('tob_analystic_db', JSON.stringify(dbState));
+                const key = getStorageKey();
+                localStorage.setItem(key, JSON.stringify(dbState));
             } catch(e) {}
             renderAll();
         }
@@ -654,6 +686,7 @@
                 if (nameEl) nameEl.innerText = currentUser.username || 'Admin';
                 if (avatarEl) avatarEl.innerText = (currentUser.username || 'A').charAt(0).toUpperCase();
             }
+            loadUserDatabase();
         }
 
         function switchAuthTab(tab) {
@@ -707,7 +740,7 @@
                 }
             } catch(err) {}
 
-            const user = dbState.users.find(u => u.username.toLowerCase() === un.toLowerCase() && u.password_hash === pw);
+            const user = (dbState.users || []).find(u => u.username.toLowerCase() === un.toLowerCase() && u.password_hash === pw);
             if (user || (un.toLowerCase() === 'admin' && pw === 'admin123')) {
                 setSession({ id: user ? user.id : 'u_admin', username: un });
             } else {
@@ -737,15 +770,8 @@
                 return;
             }
 
-            if (dbState.users.some(u => u.username.toLowerCase() === un.toLowerCase())) {
-                showAuthError('Este nombre de usuario ya está registrado.');
-                return;
-            }
-
             const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: un, password_hash: pw };
-            dbState.users.push(newUser);
-            saveState();
-
+            
             try {
                 await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
@@ -773,6 +799,52 @@
                 try { localStorage.removeItem('tob_analystic_user'); } catch(e) {}
                 checkAuthSession();
             }
+        }
+
+        /* Month Navigation & Filtering */
+        function initMonthSelector() {
+            const selectEl = document.getElementById('month-select-filter');
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            
+            const monthsNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const curDate = new Date();
+            const curYear = curDate.getFullYear();
+            
+            // Build options for 12 months before and 6 months after
+            for (let i = -12; i <= 6; i++) {
+                const d = new Date(curYear, curDate.getMonth() + i, 1);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const val = `${y}-${m}`;
+                const label = `${monthsNames[d.getMonth()]} ${y}`;
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.innerText = label;
+                if (val === selectedMonthStr) opt.selected = true;
+                selectEl.appendChild(opt);
+            }
+        }
+
+        function handleMonthSelectChange(val) {
+            selectedMonthStr = val;
+            renderAll();
+        }
+
+        function navigateMonth(delta) {
+            const parts = selectedMonthStr.split('-');
+            let year = parseInt(parts[0]);
+            let month = parseInt(parts[1]) - 1 + delta;
+            const newDate = new Date(year, month, 1);
+            selectedMonthStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}`;
+            initMonthSelector();
+            renderAll();
+        }
+
+        function resetToCurrentMonth() {
+            selectedMonthStr = new Date().toISOString().substring(0, 7);
+            initMonthSelector();
+            renderAll();
         }
 
         let currentMemberFilter = 'ALL';
@@ -842,21 +914,28 @@
                             <td><button class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')">Renovar</button></td>
                         </tr>
                     `;
-                }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios.</td></tr>';
+                }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay socios registrados para mostrar.</td></tr>';
             }
         }
 
         function renderAll() {
             try {
+                initMonthSelector();
+
                 // Stats
                 const total = dbState.members.length;
                 const active = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'ACTIVE').length;
                 const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
                 const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
 
-                const income = dbState.payments.reduce((acc, p) => acc + (p.amount || 0), 0);
-                const expensesPaid = dbState.expenses.filter(e => e.status==='PAGADO').reduce((acc, e) => acc + (e.amount || 0), 0);
-                const expensesPend = dbState.expenses.filter(e => e.status==='PENDIENTE').reduce((acc, e) => acc + (e.amount || 0), 0);
+                // Monthly filtered financial data
+                const monthlyPayments = dbState.payments.filter(p => p.date && p.date.startsWith(selectedMonthStr));
+                const monthlyExpensesPaid = dbState.expenses.filter(e => e.date && e.date.startsWith(selectedMonthStr) && e.status === 'PAGADO');
+                const monthlyExpensesPend = dbState.expenses.filter(e => e.date && e.date.startsWith(selectedMonthStr) && e.status === 'PENDIENTE');
+
+                const income = monthlyPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+                const expensesPaid = monthlyExpensesPaid.reduce((acc, e) => acc + (e.amount || 0), 0);
+                const expensesPend = monthlyExpensesPend.reduce((acc, e) => acc + (e.amount || 0), 0);
 
                 const kpiTotal = document.getElementById('kpi-total-members'); if (kpiTotal) kpiTotal.innerText = total;
                 const kpiActive = document.getElementById('kpi-active-members'); if (kpiActive) kpiActive.innerText = active;
@@ -866,6 +945,12 @@
                 const kpiInc = document.getElementById('kpi-income'); if (kpiInc) kpiInc.innerText = `$${income.toLocaleString('es-AR')}`;
                 const kpiExpPaid = document.getElementById('kpi-expenses'); if (kpiExpPaid) kpiExpPaid.innerText = `$${expensesPaid.toLocaleString('es-AR')}`;
                 const kpiExpPend = document.getElementById('kpi-pending-expenses'); if (kpiExpPend) kpiExpPend.innerText = `$${expensesPend.toLocaleString('es-AR')}`;
+
+                const monthsNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                const parts = selectedMonthStr.split('-');
+                const monthTitle = `${monthsNames[parseInt(parts[1]) - 1]} ${parts[0]}`;
+                const chartTitleEl = document.getElementById('chart-month-title');
+                if (chartTitleEl) chartTitleEl.innerText = monthTitle;
 
                 // Chart
                 try {
@@ -913,10 +998,10 @@
                             <div class="plan-price">$${(p.price || 0).toLocaleString('es-AR')}</div>
                             <div style="font-size:0.85rem; color:var(--text-muted);">${p.description || 'Sin descripción'}</div>
                         </div>
-                    `).join('') || '<div style="color:var(--text-muted);">No hay planes creados.</div>';
+                    `).join('') || '<div style="color:var(--text-muted);">No hay planes creados. Presione "Crear Nuevo Plan" para comenzar.</div>';
                 }
 
-                // Payments
+                // Payments Table
                 const paymentsBody = document.getElementById('payments-table-body');
                 if (paymentsBody) {
                     paymentsBody.innerHTML = dbState.payments.map(p => `
@@ -927,11 +1012,17 @@
                             <td><strong style="color:var(--success);">$${(p.amount || 0).toLocaleString('es-AR')}</strong></td>
                             <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
                             <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
+                            <td>
+                                <div style="display:flex; gap:0.35rem;">
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openEditPaymentModal('${p.id}')" title="Editar Cobranza"><i class="fa-solid fa-pen"></i> Editar</button>
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Cobranza"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
                         </tr>
-                    `).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay cobranzas registradas.</td></tr>';
+                    `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay cobranzas registradas.</td></tr>';
                 }
 
-                // Expenses
+                // Expenses Table
                 const expensesBody = document.getElementById('expenses-table-body');
                 if (expensesBody) {
                     expensesBody.innerHTML = dbState.expenses.map(e => `
@@ -941,7 +1032,13 @@
                             <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
                             <td><strong style="color:var(--danger);">$${(e.amount || 0).toLocaleString('es-AR')}</strong></td>
                             <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
-                            <td><button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="toggleExpenseStatus('${e.id}')">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button></td>
+                            <td>
+                                <div style="display:flex; gap:0.35rem;">
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i> Editar</button>
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="toggleExpenseStatus('${e.id}')">${e.status==='PAGADO'?'PENDIENTE':'PAGADO'}</button>
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
                         </tr>
                     `).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados.</td></tr>';
                 }
@@ -956,8 +1053,8 @@
             const mPlan = document.getElementById('m-plan');
             const rPlan = document.getElementById('renew-plan');
             const options = dbState.plans.map(p => `<option value="${p.id}">${p.name} ($${(p.price || 0).toLocaleString('es-AR')})</option>`).join('');
-            if (mPlan) mPlan.innerHTML = options;
-            if (rPlan) rPlan.innerHTML = options;
+            if (mPlan) mPlan.innerHTML = options || '<option value="">Cree un plan primero</option>';
+            if (rPlan) rPlan.innerHTML = options || '<option value="">Cree un plan primero</option>';
         }
 
         function openMemberModal() {
@@ -999,10 +1096,17 @@
             };
             dbState.members.push(newMember);
 
+            // API Call
+            fetch(`${API_URL}/members`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newMember)
+            }).catch(err => {});
+
             // Automatic Payment Record for new member
             const plan = dbState.plans.find(p => p.id === planId);
             if (plan) {
-                dbState.payments.push({
+                const payObj = {
                     id: 'pay_' + Math.random().toString(36).substr(2,6),
                     member_id: newMember.id,
                     member_name: name,
@@ -1010,9 +1114,15 @@
                     plan_name: plan.name,
                     amount: plan.price,
                     method: 'Efectivo',
-                    date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+                    date: startDate,
                     note: 'Alta de nuevo socio'
-                });
+                };
+                dbState.payments.push(payObj);
+                fetch(`${API_URL}/payments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payObj)
+                }).catch(err => {});
             }
 
             saveState();
@@ -1052,7 +1162,7 @@
                 member.expire_date = baseDate.toISOString().split('T')[0];
                 member.plan_id = planId;
 
-                dbState.payments.push({
+                const payObj = {
                     id: 'pay_' + Math.random().toString(36).substr(2,6),
                     member_id: member.id,
                     member_name: member.name,
@@ -1060,15 +1170,68 @@
                     plan_name: plan.name,
                     amount,
                     method,
-                    date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+                    date: new Date().toISOString().split('T')[0],
                     note: 'Renovación de cuota'
-                });
+                };
+
+                dbState.payments.push(payObj);
+                fetch(`${API_URL}/payments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payObj)
+                }).catch(err => {});
 
                 saveState();
             }
             closeModal('modal-renew');
         }
 
+        /* Cobranzas Edit & Delete Functions */
+        function openEditPaymentModal(id) {
+            const pay = dbState.payments.find(p => p.id === id);
+            if (!pay) return;
+            document.getElementById('edit-pay-id').value = pay.id;
+            document.getElementById('edit-pay-member-name').value = pay.member_name || '';
+            document.getElementById('edit-pay-plan-name').value = pay.plan_name || '';
+            document.getElementById('edit-pay-amount').value = pay.amount || 0;
+            document.getElementById('edit-pay-method').value = pay.method || 'Efectivo';
+            document.getElementById('edit-pay-date').value = (pay.date || '').split(' ')[0];
+            document.getElementById('edit-pay-note').value = pay.note || '';
+            openModal('modal-edit-payment');
+        }
+
+        function savePaymentEdit(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const id = document.getElementById('edit-pay-id').value;
+            const pay = dbState.payments.find(p => p.id === id);
+            if (!pay) return;
+
+            pay.member_name = document.getElementById('edit-pay-member-name').value.trim();
+            pay.plan_name = document.getElementById('edit-pay-plan-name').value.trim();
+            pay.amount = parseFloat(document.getElementById('edit-pay-amount').value) || 0;
+            pay.method = document.getElementById('edit-pay-method').value;
+            pay.date = document.getElementById('edit-pay-date').value;
+            pay.note = document.getElementById('edit-pay-note').value.trim();
+
+            fetch(`${API_URL}/payments/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pay)
+            }).catch(err => {});
+
+            saveState();
+            closeModal('modal-edit-payment');
+        }
+
+        function deletePayment(id) {
+            if (confirm('¿Estás seguro de eliminar este registro de cobranza?')) {
+                dbState.payments = dbState.payments.filter(p => p.id !== id);
+                fetch(`${API_URL}/payments/${id}`, { method: 'DELETE' }).catch(err => {});
+                saveState();
+            }
+        }
+
+        /* Plans Functions */
         function openPlanModal(id) {
             if (id) {
                 const plan = dbState.plans.find(p => p.id === id);
@@ -1105,9 +1268,20 @@
                 const plan = dbState.plans.find(p => p.id === id);
                 if (plan) {
                     plan.name = name; plan.price = price; plan.days = days; plan.description = description;
+                    fetch(`${API_URL}/plans/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(plan)
+                    }).catch(err => {});
                 }
             } else {
-                dbState.plans.push({ id: 'p_' + Math.random().toString(36).substr(2,6), name, price, days, description });
+                const newPlan = { id: 'p_' + Math.random().toString(36).substr(2,6), name, price, days, description };
+                dbState.plans.push(newPlan);
+                fetch(`${API_URL}/plans`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newPlan)
+                }).catch(err => {});
             }
 
             saveState();
@@ -1117,19 +1291,38 @@
         function deletePlan(id) {
             if (confirm('¿Estás seguro de eliminar este plan?')) {
                 dbState.plans = dbState.plans.filter(p => p.id !== id);
+                fetch(`${API_URL}/plans/${id}`, { method: 'DELETE' }).catch(err => {});
                 saveState();
             }
         }
 
-        function openExpenseModal() {
-            document.getElementById('exp-title').value = '';
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+        /* Expenses Edit & Create Functions */
+        function openExpenseModal(id) {
+            if (id) {
+                const exp = dbState.expenses.find(e => e.id === id);
+                if (exp) {
+                    document.getElementById('expense-modal-title').innerText = 'Editar Gasto';
+                    document.getElementById('exp-id').value = exp.id;
+                    document.getElementById('exp-title').value = exp.title;
+                    document.getElementById('exp-category').value = exp.category;
+                    document.getElementById('exp-amount').value = exp.amount;
+                    document.getElementById('exp-date').value = exp.date;
+                    document.getElementById('exp-status').value = exp.status;
+                }
+            } else {
+                document.getElementById('expense-modal-title').innerText = 'Nuevo Gasto';
+                document.getElementById('exp-id').value = '';
+                document.getElementById('exp-title').value = '';
+                document.getElementById('exp-amount').value = '';
+                document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('exp-status').value = 'PAGADO';
+            }
             openModal('modal-expense');
         }
 
         function saveExpense(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const id = document.getElementById('exp-id').value;
             const title = document.getElementById('exp-title').value.trim();
             const category = document.getElementById('exp-category').value;
             const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
@@ -1138,7 +1331,26 @@
 
             if (!title || !amount) return;
 
-            dbState.expenses.push({ id: 'exp_' + Math.random().toString(36).substr(2,6), title, category, amount, date, status });
+            if (id) {
+                const exp = dbState.expenses.find(x => x.id === id);
+                if (exp) {
+                    exp.title = title; exp.category = category; exp.amount = amount; exp.date = date; exp.status = status;
+                    fetch(`${API_URL}/expenses/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(exp)
+                    }).catch(err => {});
+                }
+            } else {
+                const newExp = { id: 'exp_' + Math.random().toString(36).substr(2,6), title, category, amount, date, status };
+                dbState.expenses.push(newExp);
+                fetch(`${API_URL}/expenses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newExp)
+                }).catch(err => {});
+            }
+
             saveState();
             closeModal('modal-expense');
         }
@@ -1147,27 +1359,17 @@
             const exp = dbState.expenses.find(e => e.id === id);
             if (exp) {
                 exp.status = exp.status === 'PAGADO' ? 'PENDIENTE' : 'PAGADO';
+                fetch(`${API_URL}/expenses/${id}/toggle-status`, { method: 'PATCH' }).catch(err => {});
                 saveState();
             }
         }
 
-        function openInflationModal() {
-            document.getElementById('inflation-percentage').value = '15';
-            openModal('modal-inflation');
-        }
-
-        function applyInflation(e) {
-            if (e && typeof e.preventDefault === 'function') e.preventDefault();
-            const pct = parseFloat(document.getElementById('inflation-percentage').value) || 0;
-            if (pct > 0) {
-                const factor = 1 + (pct / 100);
-                dbState.plans.forEach(p => {
-                    p.price = Math.round((p.price * factor) / 100) * 100;
-                });
+        function deleteExpense(id) {
+            if (confirm('¿Estás seguro de eliminar este gasto?')) {
+                dbState.expenses = dbState.expenses.filter(e => e.id !== id);
+                fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }).catch(err => {});
                 saveState();
-                alert(`¡Se aplicó un aumento del ${pct}% a todos los precios de los planes!`);
             }
-            closeModal('modal-inflation');
         }
 
         function checkAccess() {
@@ -1216,30 +1418,6 @@
 
             input.value = '';
             saveState();
-        }
-
-        function exportSQLDump() {
-            let sql = `-- TOB Analystic SQL Backup Dump\n-- Generado el: ${new Date().toLocaleString('es-AR')}\n\n`;
-            sql += `CREATE TABLE IF NOT EXISTS users (id VARCHAR(50), username VARCHAR(50), password_hash VARCHAR(100));\n`;
-            dbState.users.forEach(u => {
-                sql += `INSERT INTO users VALUES ('${u.id}', '${u.username}', '${u.password_hash}');\n`;
-            });
-
-            sql += `\nCREATE TABLE IF NOT EXISTS plans (id VARCHAR(50), name VARCHAR(100), price DECIMAL(10,2), days INT, description TEXT);\n`;
-            dbState.plans.forEach(p => {
-                sql += `INSERT INTO plans VALUES ('${p.id}', '${p.name}', ${p.price}, ${p.days}, '${p.description || ''}');\n`;
-            });
-
-            sql += `\nCREATE TABLE IF NOT EXISTS members (id VARCHAR(50), name VARCHAR(100), dni VARCHAR(20), phone VARCHAR(30), plan_id VARCHAR(50), start_date DATE, expire_date DATE);\n`;
-            dbState.members.forEach(m => {
-                sql += `INSERT INTO members VALUES ('${m.id}', '${m.name}', '${m.dni}', '${m.phone || ''}', '${m.plan_id}', '${m.start_date}', '${m.expire_date}');\n`;
-            });
-
-            const blob = new Blob([sql], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `tob_analystic_backup_${new Date().toISOString().split('T')[0]}.sql`;
-            link.click();
         }
 
         window.onload = function() {
