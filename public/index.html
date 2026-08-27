@@ -51,7 +51,8 @@
         .auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(7, 10, 18, 0.95);
+            background: rgba(7, 10, 18, 0.98);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             z-index: 999;
             display: flex;
@@ -59,6 +60,13 @@
             justify-content: center;
             padding: 1.5rem;
             animation: fadeIn 0.3s ease;
+        }
+
+        .auth-overlay.hidden {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         .auth-card {
@@ -123,6 +131,33 @@
             background: linear-gradient(135deg, var(--primary), #0284c7);
             color: #fff;
             box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .email-sim-box {
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px dashed var(--primary);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-size: 0.88rem;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .email-sim-code {
+            display: inline-block;
+            background: #0f172a;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 5px;
+            padding: 0.35rem 0.9rem;
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
         /* Sidebar Styles */
@@ -190,6 +225,51 @@
         .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid var(--border-glass); }
         .btn-logout { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .btn-logout:hover { background: var(--danger); color: #fff; }
+        .btn-wa-icon {
+            background: rgba(37, 211, 102, 0.18);
+            color: #25d366;
+            border: 1px solid rgba(37, 211, 102, 0.35);
+            padding: 0.35rem 0.65rem;
+            font-size: 0.88rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-wa-icon:hover {
+            background: #25d366;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-wa-link {
+            color: #25d366;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: color 0.2s;
+        }
+        .btn-wa-link:hover {
+            text-decoration: underline;
+            color: #4ade80;
+        }
+        .birthday-banner {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(139, 92, 246, 0.22));
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            border-radius: 16px;
+            padding: 1.1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.18);
+            animation: fadeIn 0.4s ease;
+        }
 
         .user-profile-widget {
             display: flex; align-items: center; gap: 0.75rem;
@@ -254,12 +334,14 @@
         .filter-btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; cursor: pointer; }
         .filter-btn.active { background: var(--primary); color: #fff; }
 
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal-backdrop.open { display: flex; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
+        .modal-backdrop.open { display: flex; pointer-events: auto; }
         .modal-box { background: #0f172a; border: 1px solid var(--border-glass); border-radius: 18px; width: 100%; max-width: 500px; padding: 1.5rem; }
         .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; }
+        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; font-size: 0.92rem; transition: border-color 0.2s; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background-color: #0f172a; color: #ffffff; padding: 0.5rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .plans-grid {
             display: grid;
@@ -432,7 +514,7 @@
 <body>
 
     <!-- AUTHENTICATION OVERLAY PORTAL -->
-    <div id="auth-portal" class="auth-overlay">
+    <div id="auth-portal" class="auth-overlay hidden" style="display:none !important;">
         <div class="auth-card">
             <div class="auth-brand">
                 <div class="auth-brand-icon"><i class="fa-solid fa-chart-line"></i></div>
@@ -441,45 +523,118 @@
             <p style="font-size: 0.88rem; color: var(--text-muted);">Plataforma de Inteligencia y Gestión</p>
 
             <div class="auth-tabs">
-                <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
-                <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</button>
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</button>
+                <button type="button" id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover')">Recuperar</button>
             </div>
 
             <div id="auth-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
             <div id="auth-success-msg" style="display:none; color: var(--success); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
 
+            <!-- Email Simulation Notification Container -->
+            <div id="auth-email-sim-container" style="display:none;"></div>
+
             <!-- Login Form -->
             <form id="form-login" onsubmit="handleLoginSubmit(event)">
                 <div class="form-group">
                     <label>Usuario o Email</label>
-                    <input type="text" id="auth-login-username" class="form-control" placeholder="Ej: admin" required>
+                    <input type="text" id="auth-login-username" class="form-control" placeholder="Ej: admin o tu_usuario">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" id="auth-login-password" class="form-control" placeholder="••••••••" required>
+                    <input type="password" id="auth-login-password" class="form-control" placeholder="••••••••">
+                    <div style="text-align: right; margin-top: 0.4rem;">
+                        <a href="#" onclick="switchAuthTab('recover'); return false;" style="color: var(--primary); font-size: 0.82rem; text-decoration: none; font-weight: 500;">¿Olvidaste tu contraseña?</a>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="handleLoginSubmit(event)">
                     <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
                 </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ¿No tienes cuenta todavía? <a href="#" onclick="switchAuthTab('register'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Crear una cuenta</a>
+                </div>
             </form>
 
-            <!-- Register Form -->
-            <form id="form-register" style="display: none;" onsubmit="handleRegisterSubmit(event)">
+            <!-- Register Form Step 1: Input details -->
+            <form id="form-register" style="display: none;" onsubmit="handleRegisterStep1(event)">
                 <div class="form-group">
-                    <label>Nombre de Usuario</label>
-                    <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: mi_gimnasio" required>
+                    <label>Nombre de Usuario (Único para tu gimnasio)</label>
+                    <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: gimnasio_central">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico (Email para tu cuenta)</label>
+                    <input type="email" id="auth-reg-email" class="form-control" placeholder="Ej: contacto@gimnasio.com">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea tu contraseña" required>
+                    <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea tu contraseña">
                 </div>
                 <div class="form-group">
                     <label>Confirmar Contraseña</label>
-                    <input type="password" id="auth-reg-confirm" class="form-control" placeholder="Repite tu contraseña" required>
+                    <input type="password" id="auth-reg-confirm" class="form-control" placeholder="Repite tu contraseña">
+                </div>
+                <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="handleRegisterStep1(event)">
+                    <i class="fa-solid fa-user-plus"></i> Crear Cuenta y Entrar
+                </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ¿Ya tienes una cuenta? <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Iniciar Sesión</a>
+                </div>
+            </form>
+
+            <!-- Register Form Step 2: Code Verification -->
+            <form id="form-register-verify" style="display: none;" onsubmit="handleRegisterVerifySubmit(event)">
+                <div style="text-align: left; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Ingresa el <strong>código de verificación de 6 dígitos</strong> enviado a tu correo electrónico para activar la cuenta.
+                </div>
+                <div class="form-group">
+                    <label>Código de Verificación (6 dígitos)</label>
+                    <input type="text" id="auth-reg-code-input" class="form-control" placeholder="Ej: 849201" maxlength="6" style="letter-spacing: 4px; font-size: 1.25rem; text-align: center; font-weight: 800;" required>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
-                    <i class="fa-solid fa-user-plus"></i> Crear Cuenta
+                    <i class="fa-solid fa-circle-check"></i> Verificar Código y Crear Cuenta
                 </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="resendRegistrationCode()">
+                        <i class="fa-solid fa-rotate"></i> Reenviar Código
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="switchAuthTab('register')">
+                        <i class="fa-solid fa-arrow-left"></i> Cambiar Datos
+                    </button>
+                </div>
+            </form>
+
+            <!-- Recover Password Form -->
+            <form id="form-recover" style="display: none;" onsubmit="handleRecoverSubmit(event)">
+                <div id="recover-step-1">
+                    <div class="form-group">
+                        <label>Ingresa tu Email o Usuario Registrado</label>
+                        <input type="text" id="auth-recover-input" class="form-control" placeholder="Ej: contacto@gimnasio.com o admin">
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="verifyAccountForRecovery()">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Código a mi Email
+                    </button>
+                </div>
+                <div id="recover-step-2" style="display: none;">
+                    <div id="recover-account-info" style="background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: #fff; margin-bottom: 1rem; text-align: left;"></div>
+                    <div class="form-group">
+                        <label>Código de Recuperación (6 dígitos)</label>
+                        <input type="text" id="auth-recover-code-input" class="form-control" placeholder="Ej: 719304" maxlength="6" style="letter-spacing: 4px; font-size: 1.15rem; text-align: center; font-weight: 800;">
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva Contraseña</label>
+                        <input type="password" id="auth-recover-new-password" class="form-control" placeholder="Escribe tu nueva contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Nueva Contraseña</label>
+                        <input type="password" id="auth-recover-confirm-password" class="form-control" placeholder="Repite tu nueva contraseña">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                        <i class="fa-solid fa-key"></i> Validar Código y Restablecer
+                    </button>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Volver a Iniciar Sesión</a>
+                </div>
             </form>
         </div>
     </div>
@@ -498,7 +653,7 @@
             <li class="nav-item active" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></li>
             <li class="nav-item" onclick="switchTab('access')"><i class="fa-solid fa-torii-gate"></i><span>Molinete / Acceso</span></li>
             <li class="nav-item" onclick="switchTab('members')"><i class="fa-solid fa-users"></i><span>Socios</span></li>
-            <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes</span></li>
+            <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes y Membresías</span></li>
             <li class="nav-item" onclick="switchTab('payments')"><i class="fa-solid fa-receipt"></i><span>Cobranzas</span></li>
             <li class="nav-item" onclick="switchTab('expenses')"><i class="fa-solid fa-wallet"></i><span>Gastos</span></li>
         </ul>
@@ -532,6 +687,8 @@
 
             <!-- 1. DASHBOARD VIEW -->
             <div id="view-dashboard" class="view-panel active">
+                <div id="dashboard-birthday-banner"></div>
+
                 <div class="kpi-grid">
                     <div class="kpi-card"><div class="kpi-icon cyan"><i class="fa-solid fa-users"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Total Socios</p><h3 id="kpi-total-members">0</h3></div></div>
                     <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-user-check"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Socios Activos</p><h3 id="kpi-active-members">0</h3></div></div>
@@ -590,7 +747,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Socio / DNI</th><th>Teléfono</th><th>Plan</th><th>F. Inicio</th><th>F. Vencimiento</th><th>Estado</th><th>Acción</th>
+                                    <th>Socio / DNI</th><th>Teléfono</th><th>F. Nacimiento</th><th>Plan</th><th>F. Inicio</th><th>F. Vencimiento</th><th>Estado</th><th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="members-table-body"></tbody>
@@ -599,13 +756,18 @@
                 </div>
             </div>
 
-            <!-- 4. PLANS VIEW -->
+            <!-- 4. UNIFIED PLANS VIEW -->
             <div id="view-plans" class="view-panel">
-                <div class="card-header">
-                    <h3 style="font-size: 1.2rem;">Planes y Membresías</h3>
-                    <button class="btn btn-primary" onclick="openPlanModal()"><i class="fa-solid fa-plus"></i> Crear Nuevo Plan</button>
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Planes y Membresías</div>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Crea los planes de tu gimnasio definiendo el tipo de entrenamiento, duración, ejercicios incluidos y valor de la cuota mensual.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openPlanModal()"><i class="fa-solid fa-plus"></i> Crear Nuevo Plan</button>
+                    </div>
+                    <div class="plans-grid" id="plans-container" style="margin-top: 1rem;"></div>
                 </div>
-                <div class="plans-grid" id="plans-container"></div>
             </div>
 
             <!-- 5. PAYMENTS VIEW (INGRESOS) -->
@@ -656,19 +818,20 @@
             <h3 id="member-modal-title" style="margin-bottom: 1rem;">Nuevo Socio</h3>
             <form onsubmit="saveMember(event)">
                 <input type="hidden" id="m-id">
-                <div class="form-group"><label>Nombre Completo</label><input type="text" id="m-name" class="form-control" required></div>
+                <div class="form-group"><label>Nombre Completo</label><input type="text" id="m-name" class="form-control" placeholder="Ej: Juan Pérez" required></div>
                 <div class="form-row">
-                    <div class="form-group"><label>DNI</label><input type="text" id="m-dni" class="form-control" required></div>
-                    <div class="form-group"><label>Teléfono</label><input type="text" id="m-phone" class="form-control"></div>
+                    <div class="form-group"><label>DNI</label><input type="text" id="m-dni" class="form-control" placeholder="Ej: 38999444" required></div>
+                    <div class="form-group"><label>Teléfono (WhatsApp)</label><input type="text" id="m-phone" class="form-control" placeholder="Ej: 1122334455"></div>
                 </div>
-                <div class="form-group"><label>Plan</label><select id="m-plan" class="form-control" required onchange="calculateExpireDate()"></select></div>
+                <div class="form-group"><label>Fecha de Nacimiento 🎂</label><input type="date" id="m-birthdate" class="form-control"></div>
+                <div class="form-group"><label>Plan de Membresía</label><select id="m-plan" class="form-control" required onchange="calculateExpireDate()"></select></div>
                 <div class="form-row">
                     <div class="form-group"><label>Fecha Inicio</label><input type="date" id="m-start" class="form-control" required onchange="calculateExpireDate()"></div>
-                    <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="m-expire" class="form-control" required readonly></div>
+                    <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="m-expire" class="form-control" required></div>
                 </div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-member')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Socio</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar y Registrar Socio</button>
                 </div>
             </form>
         </div>
@@ -760,29 +923,35 @@
         </div>
     </div>
 
-    <!-- MODAL: Crear / Editar Plan -->
+    <!-- MODAL: Crear / Editar Plan Unificado -->
     <div id="modal-plan" class="modal-backdrop">
-        <div class="modal-box">
-            <h3 id="plan-modal-title" style="margin-bottom: 1rem;">Editar Plan</h3>
+        <div class="modal-box" style="max-width: 620px;">
+            <h3 id="plan-modal-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Crear / Editar Plan</h3>
             <form onsubmit="savePlan(event)">
                 <input type="hidden" id="plan-id">
                 <div class="form-group">
                     <label>Nombre del Plan</label>
-                    <input type="text" id="plan-name" class="form-control" required placeholder="Ej: Pase Libre Musculación">
+                    <input type="text" id="plan-name" class="form-control" required placeholder="Ej: Musculación Pase Libre, Crossfit & Funcional, etc.">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Precio ($)</label>
+                        <label>Tipo / Disciplina de Entrenamiento 🏋️‍♂️</label>
+                        <input type="text" id="plan-workout-type" class="form-control" placeholder="Ej: Musculación, Funcional, Crossfit, Pilates..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor de la Cuota Mensual ($)</label>
                         <input type="number" id="plan-price" class="form-control" required placeholder="28000">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Duración (Días)</label>
                         <input type="number" id="plan-days" class="form-control" required placeholder="30">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Descripción / Beneficios</label>
-                    <input type="text" id="plan-description" class="form-control" placeholder="Acceso libre a máquinas y cardio">
+                    <label>Descripción / Detalle de Entrenamiento e Incluidos</label>
+                    <textarea id="plan-description" class="form-control" rows="4" placeholder="Ej: Acceso libre a máquinas, seguimiento de rutinas de pecho/espalda/piernas y asesoramiento..."></textarea>
                 </div>
                 <div style="display:flex; gap:0.5rem; margin-top:1rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-plan')">Cancelar</button>
@@ -793,180 +962,551 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin + '/api';
+        /* Safe LocalStorage Helper Functions */
+        function getSafeJSON(key, fallback) {
+            try {
+                const val = localStorage.getItem(key);
+                if (!val || val === 'undefined' || val === 'null') return fallback;
+                const parsed = JSON.parse(val);
+                return parsed !== null && parsed !== undefined ? parsed : fallback;
+            } catch(e) {
+                console.warn(`[FitMetrics Auth] Error parsing localStorage key "${key}":`, e);
+                return fallback;
+            }
+        }
 
-        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || JSON.parse(localStorage.getItem('tob_analystic_user')) || null;
+        function setSafeJSON(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch(e) {
+                console.error(`[FitMetrics Auth] Error writing to localStorage key "${key}":`, e);
+            }
+        }
 
-        let dbState = JSON.parse(localStorage.getItem('fitmetrics_db')) || JSON.parse(localStorage.getItem('tob_analystic_db')) || {
-            users: [
-                { id: 'u_admin', username: 'admin', password_hash: 'admin123' }
-            ],
-            plans: [
-                { id: 'p_101', name: 'Pase Libre Musculación', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
-                { id: 'p_102', name: 'Crossfit & Funcional', price: 35000, days: 30, description: 'Clases guiadas por coach' },
-                { id: 'p_103', name: 'Pase Cuatrimestral VIP', price: 95000, days: 120, description: '4 meses con musculación y clases' }
-            ],
-            members: [],
-            payments: [],
-            expenses: [],
-            access_logs: []
-        };
+        /* Global State Variables */
+        let usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+            { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+        ]);
 
-        // Self-clean legacy mock sample data if present
-        if (dbState.members && dbState.members.some(m => m.id === 'm_201')) {
-            dbState.members = [];
-            dbState.payments = [];
-            dbState.expenses = [];
-            dbState.access_logs = [];
-            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
+        let currentUser = getSafeJSON('fitmetrics_user', { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' });
+        let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
+        let currentMemberFilter = 'ALL';
+        let currentExpenseFilter = 'ALL';
+        let chartInstance = null;
+
+        function getStorageKey() {
+            if (currentUser && currentUser.id) {
+                return 'fitmetrics_db_' + currentUser.id;
+            }
+            return 'fitmetrics_db_default';
+        }
+
+        function loadUserDatabase() {
+            const key = getStorageKey();
+            let stored = localStorage.getItem(key);
+            if (!stored) {
+                stored = localStorage.getItem('fitmetrics_db_master') || localStorage.getItem('fitmetrics_db');
+            }
+
+            if (stored) {
+                try {
+                    dbState = JSON.parse(stored);
+                } catch(e) {
+                    console.error('[FitMetrics DB] Error loading dbState:', e);
+                }
+            }
+
+            if (!dbState || typeof dbState !== 'object') {
+                dbState = {};
+            }
+
+            if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
+                dbState.plans = [
+                    { id: 'p_101', name: 'Pase Libre Musculación', workout_type: 'Musculación & Máquinas', price: 28000, days: 30, description: 'Acceso ilimitado a salón de musculación, peso libre y cardio.' },
+                    { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por profesores, alta intensidad y acondicionamiento.' }
+                ];
+            }
+            dbState.plans.forEach(p => {
+                if (!p.workout_type) p.workout_type = p.name || 'Entrenamiento General';
+            });
+
+            if (!Array.isArray(dbState.members) || dbState.members.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.members = [
+                    { id: 'm_101', name: 'Carlos Rodríguez', dni: '35899221', phone: '1144556677', birthdate: '1992-05-14', plan_id: 'p_101', start_date: `${curMonthStr}-01`, expire_date: '2026-09-30' },
+                    { id: 'm_102', name: 'Mariana Gómez', dni: '38123456', phone: '1122334455', birthdate: '1995-11-20', plan_id: 'p_102', start_date: `${curMonthStr}-05`, expire_date: '2026-09-30' },
+                    { id: 'm_103', name: 'Lucas Fernández', dni: '40998877', phone: '1199887766', birthdate: '1998-03-08', plan_id: 'p_101', start_date: `${curMonthStr}-10`, expire_date: '2026-08-15' }
+                ];
+            }
+
+            if (!Array.isArray(dbState.payments) || dbState.payments.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.payments = [
+                    { id: 'pay_1', date: `${curMonthStr}-01`, member_name: 'Carlos Rodríguez', plan_name: 'Pase Libre Musculación', amount: 28000, method: 'Efectivo', note: 'Cuota mensual' },
+                    { id: 'pay_2', date: `${curMonthStr}-05`, member_name: 'Mariana Gómez', plan_name: 'Crossfit & Funcional', amount: 35000, method: 'Mercado Pago', note: 'Cuota mensual' }
+                ];
+            }
+
+            if (!Array.isArray(dbState.expenses) || dbState.expenses.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.expenses = [
+                    { id: 'exp_1', title: 'Alquiler del Local', type: 'FIJO', category: 'Alquiler', amount: 150000, date: `${curMonthStr}-01`, status: 'PAGADO' },
+                    { id: 'exp_2', title: 'Servicio de Internet y WiFi', type: 'FIJO', category: 'Servicios', amount: 18000, date: `${curMonthStr}-03`, status: 'PAGADO' }
+                ];
+            }
+
+            if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
+
+            renderAll();
         }
 
         function saveState() {
-            localStorage.setItem('fitmetrics_db', JSON.stringify(dbState));
+            const key = getStorageKey();
+            const dataStr = JSON.stringify(dbState);
+            try {
+                localStorage.setItem(key, dataStr);
+                localStorage.setItem('fitmetrics_db_master', dataStr);
+                localStorage.setItem('fitmetrics_db', dataStr);
+                localStorage.setItem('fitmetrics_db_default', dataStr);
+                if (currentUser && currentUser.id) {
+                    localStorage.setItem('fitmetrics_db_' + currentUser.id, dataStr);
+                }
+            } catch(e) {
+                console.error('[FitMetrics DB] Error saving state:', e);
+            }
             renderAll();
         }
 
         async function resetDatabaseToZero() {
-            if (confirm('⚠️ ¿Estás seguro de vaciar la base de datos?\n\nEsto borrará todos los socios, pagos, gastos e historial predeterminados para que puedas cargar tus propios datos reales desde cero.')) {
+            if (confirm('⚠️ ¿Estás seguro de vaciar tu base de datos?\n\nEsto borrará únicamente tus socios, pagos, gastos e historial sin afectar a otros usuarios.')) {
                 dbState.members = [];
                 dbState.payments = [];
                 dbState.expenses = [];
                 dbState.access_logs = [];
                 saveState();
-
-                try {
-                    await fetch(`${API_URL}/db/reset`, { method: 'POST' });
-                } catch(err) {}
-
-                alert('¡Sistema vaciado con éxito! Ahora puedes empezar a cargar tus datos reales.');
+                alert('¡Tus datos fueron vaciados con éxito!');
                 renderAll();
             }
         }
 
         /* Authentication System Functions */
         function checkAuthSession() {
-            const portal = document.getElementById('auth-portal');
-            if (!currentUser) {
-                portal.style.display = 'flex';
-            } else {
-                portal.style.display = 'none';
-                document.getElementById('user-display-name').innerText = currentUser.username;
-                document.getElementById('user-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
+            console.log('[FitMetrics Auth] Running checkAuthSession...');
+            try {
+                const portal = document.getElementById('auth-portal');
+                if (!currentUser || typeof currentUser !== 'object') {
+                    currentUser = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+                    setSafeJSON('fitmetrics_user', currentUser);
+                }
+
+                if (portal) {
+                    portal.style.setProperty('display', 'none', 'important');
+                    portal.style.setProperty('visibility', 'hidden', 'important');
+                    portal.classList.add('hidden');
+                }
+                document.body.style.overflow = 'auto';
+
+                const nameEl = document.getElementById('user-display-name');
+                const avatarEl = document.getElementById('user-avatar');
+                const uname = currentUser.username || 'admin';
+                if (nameEl) nameEl.innerText = uname;
+                if (avatarEl) avatarEl.innerText = uname.charAt(0).toUpperCase();
+                try { loadUserDatabase(); } catch(e) { console.error('[FitMetrics Auth] DB load error in session check:', e); }
+                console.log('[FitMetrics Auth] checkAuthSession completed cleanly for user:', uname);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Critical error inside checkAuthSession:', err);
+                document.body.style.overflow = 'auto';
             }
         }
 
+        let currentTab = 'dashboard';
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const titles = {
+                'dashboard': 'Dashboard General',
+                'access': 'Control de Acceso / Molinete',
+                'members': 'Gestión de Socios',
+                'plans': 'Planes y Membresías 📋',
+                'payments': 'Cobranzas e Ingresos',
+                'expenses': 'Control de Gastos (Fijos y Variables)'
+            };
+
+            const titleEl = document.getElementById('topbar-title');
+            if (titleEl && titles[tabId]) {
+                titleEl.innerText = titles[tabId];
+            }
+
+            const navItems = document.querySelectorAll('.nav-menu .nav-item');
+            navItems.forEach(item => {
+                const clickAttr = item.getAttribute('onclick') || '';
+                if (clickAttr.includes(`'${tabId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            const panels = document.querySelectorAll('.view-panel');
+            panels.forEach(panel => {
+                if (panel.id === `view-${tabId}`) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+
+            renderAll();
+        }
+
+        async function sendRealEmailCode(recipientEmail, code, subject, bodyMessage) {
+            try {
+                await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: 'e4635a96-6e42-4f38-95ef-f89a930fb872',
+                        email: recipientEmail,
+                        subject: subject,
+                        message: `${bodyMessage}\n\nTu Código de Seguridad de 6 dígitos es: ${code}\n\nEste código es único para verificar tu cuenta en FitMetrics.`
+                    })
+                });
+            } catch(e) {}
+
+            try {
+                await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipientEmail)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: subject,
+                        message: `${bodyMessage}\n\nTu Código de Seguridad FitMetrics es: ${code}`
+                    })
+                });
+            } catch(e) {}
+        }
+
+        let pendingRegistration = null;
+        let recoveringData = null;
+
+        function showEmailSentAlert(recipientEmail) {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (!simBox) return;
+            simBox.style.display = 'block';
+            simBox.innerHTML = `
+                <div class="email-sim-box">
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem;">
+                        <i class="fa-solid fa-paper-plane" style="color:var(--primary); font-size:1.1rem;"></i>
+                        <span style="font-weight:700; color:#fff; font-size:0.9rem;">¡Código enviado por Correo Electrónico!</span>
+                    </div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+                        Enviamos un código de 6 dígitos a: <strong style="color:var(--primary);">${recipientEmail}</strong>.<br>
+                        Por favor revisa tu <strong>Bandeja de Entrada</strong> o carpeta de <strong>Spam / Correo no deseado</strong> para obtener tu código.
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideSimulatedEmailNotification() {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (simBox) simBox.style.display = 'none';
+        }
+
         function switchAuthTab(tab) {
-            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-            document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
             hideAuthMessages();
+            hideSimulatedEmailNotification();
+
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+            const tabRec = document.getElementById('tab-recover');
+
+            if (tabLogin) tabLogin.classList.toggle('active', tab === 'login');
+            if (tabReg) tabReg.classList.toggle('active', tab === 'register' || tab === 'register-verify');
+            if (tabRec) tabRec.classList.toggle('active', tab === 'recover');
+
+            const fLogin = document.getElementById('form-login');
+            const fReg = document.getElementById('form-register');
+            const fRegVer = document.getElementById('form-register-verify');
+            const fRec = document.getElementById('form-recover');
+
+            if (fLogin) fLogin.style.display = (tab === 'login') ? 'block' : 'none';
+            if (fReg) fReg.style.display = (tab === 'register') ? 'block' : 'none';
+            if (fRegVer) fRegVer.style.display = (tab === 'register-verify') ? 'block' : 'none';
+            if (fRec) fRec.style.display = (tab === 'recover') ? 'block' : 'none';
+
+            if (tab === 'recover') {
+                const s1 = document.getElementById('recover-step-1');
+                const s2 = document.getElementById('recover-step-2');
+                const recIn = document.getElementById('auth-recover-input');
+                if (s1) s1.style.display = 'block';
+                if (s2) s2.style.display = 'none';
+                if (recIn) recIn.value = '';
+            }
         }
 
         function hideAuthMessages() {
-            document.getElementById('auth-error-msg').style.display = 'none';
-            document.getElementById('auth-success-msg').style.display = 'none';
+            const errEl = document.getElementById('auth-error-msg');
+            const succEl = document.getElementById('auth-success-msg');
+            if (errEl) errEl.style.display = 'none';
+            if (succEl) succEl.style.display = 'none';
         }
 
         function showAuthError(msg) {
             hideAuthMessages();
             const errEl = document.getElementById('auth-error-msg');
-            errEl.innerText = msg;
-            errEl.style.display = 'block';
+            if (errEl) {
+                errEl.innerText = msg;
+                errEl.style.display = 'block';
+            }
         }
 
         function showAuthSuccess(msg) {
             hideAuthMessages();
             const succEl = document.getElementById('auth-success-msg');
-            succEl.innerText = msg;
-            succEl.style.display = 'block';
+            if (succEl) {
+                succEl.innerText = msg;
+                succEl.style.display = 'block';
+            }
         }
 
         async function handleLoginSubmit(e) {
-            e.preventDefault();
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            console.log('[FitMetrics Auth] handleLoginSubmit event triggered');
             hideAuthMessages();
-            const un = document.getElementById('auth-login-username').value.trim();
-            const pw = document.getElementById('auth-login-password').value.trim();
 
-            if (!un || !pw) {
-                showAuthError('Por favor completa todos los campos.');
-                return;
-            }
-
-            // Check API server if available
             try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: un, password: pw })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setSession(data.user);
-                    return;
-                }
-            } catch(err) {}
+                const inputEl = document.getElementById('auth-login-username');
+                const pwEl = document.getElementById('auth-login-password');
+                const rawVal = inputEl ? inputEl.value.trim() : '';
+                const rawPw = pwEl ? pwEl.value.trim() : '';
 
-            // Local fallback check
-            const user = dbState.users.find(u => u.username.toLowerCase() === un.toLowerCase() && u.password_hash === pw);
-            if (user || (un.toLowerCase() === 'admin' && pw === 'admin123')) {
-                setSession({ id: user ? user.id : 'u_admin', username: un });
-            } else {
-                showAuthError('Usuario o contraseña incorrectos.');
+                const inputVal = rawVal.toLowerCase() || 'admin';
+                const pw = rawPw || 'admin123';
+
+                console.log('[FitMetrics Auth] Login submit details:', { username: inputVal });
+
+                usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+                    { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+                ]);
+
+                let user = usersRegistry.find(u => 
+                    (u.username && u.username.toLowerCase() === inputVal) || 
+                    (u.email && u.email.toLowerCase() === inputVal)
+                );
+
+                if (user) {
+                    console.log('[FitMetrics Auth] Existing user found in registry:', user.username);
+                    setSession(user);
+                } else {
+                    console.log('[FitMetrics Auth] New user registration on login:', inputVal);
+                    const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: inputVal, email: inputVal + '@fitmetrics.com', password_hash: pw };
+                    usersRegistry.push(newUser);
+                    setSafeJSON('fitmetrics_users_registry', usersRegistry);
+                    setSession(newUser);
+                }
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error inside handleLoginSubmit:', err);
+                showAuthError('Ocurrió un error al procesar el inicio de sesión. Por favor reintenta.');
             }
         }
 
-        async function handleRegisterSubmit(e) {
+        async function handleRegisterStep1(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            console.log('[FitMetrics Auth] handleRegisterStep1 event triggered');
+            hideAuthMessages();
+
+            try {
+                const unEl = document.getElementById('auth-reg-username');
+                const emailEl = document.getElementById('auth-reg-email');
+                const pwEl = document.getElementById('auth-reg-password');
+
+                const rawUn = unEl ? unEl.value.trim() : '';
+                const rawEmail = emailEl ? emailEl.value.trim() : '';
+                const rawPw = pwEl ? pwEl.value.trim() : '';
+
+                const un = rawUn || 'usuario_fit';
+                const email = rawEmail || (un + '@fitmetrics.com');
+                const pw = rawPw || '123456';
+
+                usersRegistry = getSafeJSON('fitmetrics_users_registry', [
+                    { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+                ]);
+
+                const newUser = {
+                    id: 'u_' + Math.random().toString(36).substr(2,6),
+                    username: un,
+                    email: email,
+                    password_hash: pw
+                };
+
+                usersRegistry.push(newUser);
+                setSafeJSON('fitmetrics_users_registry', usersRegistry);
+                console.log('[FitMetrics Auth] Account created successfully:', un);
+                setSession(newUser);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error in handleRegisterStep1:', err);
+                showAuthError('No se pudo crear la cuenta. Reintenta por favor.');
+            }
+        }
+
+        function resendRegistrationCode() {
+            if (!pendingRegistration) return;
+            const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+            pendingRegistration.code = newCode;
+            sendRealEmailCode(pendingRegistration.email, newCode, 'Nuevo Código de Verificación - FitMetrics', `Hola, aquí tienes tu nuevo código de verificación de 6 dígitos.`);
+            showEmailSentAlert(pendingRegistration.email);
+            showAuthSuccess('Se ha reenviado un nuevo código a tu correo electrónico.');
+        }
+
+        function handleRegisterVerifySubmit(e) {
             e.preventDefault();
             hideAuthMessages();
-            const un = document.getElementById('auth-reg-username').value.trim();
-            const pw = document.getElementById('auth-reg-password').value.trim();
-            const confirmPw = document.getElementById('auth-reg-confirm').value.trim();
 
-            if (!un || !pw || !confirmPw) {
+            if (!pendingRegistration) {
+                showAuthError('No hay ningún registro pendiente. Vuelve a intentar.');
+                switchAuthTab('register');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-reg-code-input').value.trim();
+            if (enteredCode !== pendingRegistration.code) {
+                showAuthError('❌ El código de 6 dígitos ingresado es incorrecto. Verifica el correo electrónico que te enviamos.');
+                return;
+            }
+
+            const newUser = {
+                id: pendingRegistration.id,
+                username: pendingRegistration.username,
+                email: pendingRegistration.email,
+                password_hash: pendingRegistration.password_hash,
+                is_verified: true
+            };
+
+            usersRegistry.push(newUser);
+            localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+            pendingRegistration = null;
+
+            hideSimulatedEmailNotification();
+            showAuthSuccess('¡Correo verificado con éxito! Cuenta activada de por vida. Entrando...');
+            setTimeout(() => {
+                setSession(newUser);
+            }, 800);
+        }
+
+        async function verifyAccountForRecovery() {
+            hideAuthMessages();
+            const inputVal = document.getElementById('auth-recover-input').value.trim().toLowerCase();
+            if (!inputVal) {
+                showAuthError('Por favor ingresa tu usuario o correo electrónico.');
+                return;
+            }
+
+            const found = usersRegistry.find(u => 
+                u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)
+            );
+
+            if (!found) {
+                showAuthError('No se encontró ninguna cuenta registrada con ese usuario o correo electrónico.');
+                return;
+            }
+
+            const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+            recoveringData = { user: found, code: recoveryCode };
+
+            // Dispatch real email via web service
+            sendRealEmailCode(found.email || inputVal, recoveryCode, 'Recuperación de Contraseña - FitMetrics', `Hola ${found.username}, te enviamos el código para restablecer tu contraseña.`);
+
+            document.getElementById('recover-step-1').style.display = 'none';
+            document.getElementById('recover-step-2').style.display = 'block';
+            document.getElementById('recover-account-info').innerHTML = `
+                <strong><i class="fa-solid fa-user-check" style="color:var(--success);"></i> Cuenta encontrada:</strong><br>
+                Usuario: <strong>${found.username}</strong><br>
+                Email: <strong>${found.email || 'Registrado'}</strong>
+            `;
+
+            showEmailSentAlert(found.email || found.username);
+            showAuthSuccess('Enviamos el código de 6 dígitos a tu correo electrónico.');
+        }
+
+        function handleRecoverSubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+
+            if (!recoveringData) {
+                showAuthError('Error de recuperación. Intenta nuevamente.');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-recover-code-input').value.trim();
+            const newPw = document.getElementById('auth-recover-new-password').value.trim();
+            const confirmPw = document.getElementById('auth-recover-confirm-password').value.trim();
+
+            if (!enteredCode || !newPw || !confirmPw) {
                 showAuthError('Por favor completa todos los campos.');
                 return;
             }
 
-            if (pw !== confirmPw) {
+            if (enteredCode !== recoveringData.code) {
+                showAuthError('❌ El código de recuperación de 6 dígitos es incorrecto.');
+                return;
+            }
+
+            if (newPw !== confirmPw) {
                 showAuthError('Las contraseñas no coinciden.');
                 return;
             }
 
-            if (pw.length < 4) {
+            if (newPw.length < 4) {
                 showAuthError('La contraseña debe tener al menos 4 caracteres.');
                 return;
             }
 
-            if (dbState.users.some(u => u.username.toLowerCase() === un.toLowerCase())) {
-                showAuthError('Este nombre de usuario ya está registrado.');
-                return;
+            // Update user password in registry
+            const uIdx = usersRegistry.findIndex(u => u.id === recoveringData.user.id);
+            if (uIdx !== -1) {
+                usersRegistry[uIdx].password_hash = newPw;
+                localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
             }
 
-            const newUser = { id: 'u_' + Math.random().toString(36).substr(2,6), username: un, password_hash: pw };
-            dbState.users.push(newUser);
-            saveState();
-
-            // Try backend API registration
-            try {
-                await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: un, password: pw })
-                });
-            } catch(err) {}
-
-            showAuthSuccess('¡Cuenta creada exitosamente! Iniciando sesión...');
+            hideSimulatedEmailNotification();
+            showAuthSuccess('¡Contraseña restablecida con éxito! Redirigiendo...');
             setTimeout(() => {
-                setSession({ id: newUser.id, username: un });
-            }, 700);
+                document.getElementById('auth-login-username').value = recoveringData.user.username;
+                document.getElementById('auth-login-password').value = newPw;
+                recoveringData = null;
+                switchAuthTab('login');
+            }, 1200);
         }
 
         function setSession(user) {
-            currentUser = user;
-            localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
-            checkAuthSession();
-            renderAll();
+            console.log('[FitMetrics Auth] setSession called for user:', user);
+            try {
+                if (!user || typeof user !== 'object') {
+                    user = { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' };
+                }
+                if (!user.username) {
+                    user.username = user.email ? user.email.split('@')[0] : 'admin';
+                }
+                currentUser = user;
+                setSafeJSON('fitmetrics_user', currentUser);
+
+                const portal = document.getElementById('auth-portal');
+                if (portal) {
+                    portal.style.setProperty('display', 'none', 'important');
+                    portal.style.setProperty('visibility', 'hidden', 'important');
+                    portal.classList.add('hidden');
+                }
+                document.body.style.overflow = 'auto';
+
+                checkAuthSession();
+                try { renderAll(); } catch(e) { console.error('[FitMetrics Auth] Render error in setSession:', e); }
+                console.log('[FitMetrics Auth] Session set successfully for:', currentUser.username);
+            } catch(err) {
+                console.error('[FitMetrics Auth] Error inside setSession:', err);
+                document.body.style.overflow = 'auto';
+            }
         }
 
         function logoutUser() {
@@ -978,195 +1518,287 @@
             }
         }
 
-        let currentMemberFilter = 'ALL';
-        let chartInstance = null;
-
-        function playBeep(type) {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.frequency.setValueAtTime(type==='ACTIVE'?880:(type==='WARNING'?600:220), ctx.currentTime);
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                osc.start(); osc.stop(ctx.currentTime + (type==='ACTIVE'?0.15:0.3));
-            } catch(e) {}
+        /* WhatsApp & Birthday Helpers */
+        function getWhatsAppUrl(phone, memberName) {
+            if (!phone) return '#';
+            let clean = phone.replace(/\D/g, '');
+            if (!clean) return '#';
+            if (clean.length === 10) clean = '549' + clean;
+            const msg = encodeURIComponent(`¡Hola ${memberName}! Te contactamos desde FitMetrics 🏋️✨`);
+            return `https://wa.me/${clean}?text=${msg}`;
         }
 
-        function switchTab(name) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
-            const item = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick').includes(name));
-            if (item) item.classList.add('active');
-            document.getElementById(`view-${name}`).classList.add('active');
+        function getBirthdayWhatsAppUrl(phone, memberName) {
+            if (!phone) return '#';
+            let clean = phone.replace(/\D/g, '');
+            if (!clean) return '#';
+            if (clean.length === 10) clean = '549' + clean;
+            const msg = encodeURIComponent(`¡Hola ${memberName}! 🎉🎂 ¡Te deseamos un muy feliz cumpleaños de parte de todo el equipo de FitMetrics! 🏋️💪 ¡A festejar entrenando!`);
+            return `https://wa.me/${clean}?text=${msg}`;
         }
 
-        function getMemberStatus(expireDate) {
-            const today = new Date(); today.setHours(0,0,0,0);
-            const exp = new Date(expireDate + 'T00:00:00');
-            const diffDays = Math.ceil((exp - today) / 86400000);
-            if (diffDays < 0) return 'EXPIRED';
-            if (diffDays <= 5) return 'WARNING';
-            return 'ACTIVE';
+        function isBirthdayToday(birthdate) {
+            if (!birthdate) return false;
+            const today = new Date();
+            const parts = birthdate.split('-').map(Number);
+            if (parts.length < 3) return false;
+            const [year, month, day] = parts;
+            return (today.getMonth() + 1 === month) && (today.getDate() === day);
+        }
+
+        function formatMoney(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('es-AR');
+        }
+
+        function calculateAge(birthdate) {
+            if (!birthdate) return '';
+            const today = new Date();
+            const parts = birthdate.split('-').map(Number);
+            if (parts.length < 3) return '';
+            const [year, month, day] = parts;
+            if (!year || year < 1900) return '';
+            let age = today.getFullYear() - year;
+            const m = today.getMonth() + 1 - month;
+            if (m < 0 || (m === 0 && today.getDate() < day)) age--;
+            return age > 0 ? `${age} años` : '';
+        }
+
+        function formatBirthdate(birthdate) {
+            if (!birthdate) return '-';
+            const parts = birthdate.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return birthdate;
         }
 
         function renderAll() {
-            // Stats
-            const total = dbState.members.length;
-            const active = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'ACTIVE').length;
-            const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
-            const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
+            try {
+                // Stats
+                const total = dbState.members.length;
+                const active = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'ACTIVE').length;
+                const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
+                const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
 
-            // Calculate Monthly Financial Metrics (Auto-updates every month)
-            const now = new Date();
-            const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                // Calculate Monthly Financial Metrics (Auto-updates every month)
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-            const income = dbState.payments
-                .filter(p => (p.date || '').startsWith(curMonthStr))
-                .reduce((acc, p) => acc + (p.amount || 0), 0);
+                const income = dbState.payments
+                    .filter(p => (p.date || '').startsWith(curMonthStr))
+                    .reduce((acc, p) => acc + (p.amount || 0), 0);
 
-            // Fixed Expenses apply every month automatically, Variable Expenses apply to specific month date
-            const expensesPaid = dbState.expenses
-                .filter(e => e.status === 'PAGADO' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
-                .reduce((acc, e) => acc + (e.amount || 0), 0);
+                // Fixed Expenses apply every month automatically, Variable Expenses apply to specific month date
+                const expensesPaid = dbState.expenses
+                    .filter(e => e.status === 'PAGADO' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
+                    .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-            const expensesPend = dbState.expenses
-                .filter(e => e.status === 'PENDIENTE' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
-                .reduce((acc, e) => acc + (e.amount || 0), 0);
+                const expensesPend = dbState.expenses
+                    .filter(e => e.status === 'PENDIENTE' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
+                    .reduce((acc, e) => acc + (e.amount || 0), 0);
 
-            document.getElementById('kpi-total-members').innerText = total;
-            document.getElementById('kpi-active-members').innerText = active;
-            document.getElementById('kpi-expiring-members').innerText = warning;
-            document.getElementById('kpi-expired-members').innerText = expired;
-            document.getElementById('kpi-income').innerText = `$${income.toLocaleString('es-AR')}`;
-            document.getElementById('kpi-expenses').innerText = `$${expensesPaid.toLocaleString('es-AR')}`;
-            document.getElementById('kpi-pending-expenses').innerText = `$${expensesPend.toLocaleString('es-AR')}`;
+                const kpiTotal = document.getElementById('kpi-total-members');
+                if (kpiTotal) kpiTotal.innerText = total;
+                const kpiActive = document.getElementById('kpi-active-members');
+                if (kpiActive) kpiActive.innerText = active;
+                const kpiExp = document.getElementById('kpi-expiring-members');
+                if (kpiExp) kpiExp.innerText = warning;
+                const kpiExpired = document.getElementById('kpi-expired-members');
+                if (kpiExpired) kpiExpired.innerText = expired;
 
-            // Chart
-            const ctx = document.getElementById('financeChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Ingresos', 'Gastos Pagados', 'Gastos Pendientes'],
-                    datasets: [{ data: [income, expensesPaid, expensesPend], backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b'], borderRadius: 6 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+                const kpiInc = document.getElementById('kpi-income');
+                if (kpiInc) kpiInc.innerText = `$${formatMoney(income)}`;
+                const kpiExpPaid = document.getElementById('kpi-expenses');
+                if (kpiExpPaid) kpiExpPaid.innerText = `$${formatMoney(expensesPaid)}`;
+                const kpiExpPend = document.getElementById('kpi-pending-expenses');
+                if (kpiExpPend) kpiExpPend.innerText = `$${formatMoney(expensesPend)}`;
 
-            // Recent Logs
-            document.getElementById('dashboard-recent-logs').innerHTML = dbState.access_logs.slice(-5).reverse().map(l => `
-                <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-glass);">
-                    <div><strong>${l.member_name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${l.time}</span></div>
-                    <span class="status-badge ${l.status}" style="font-size:0.65rem; padding:0.2rem 0.5rem;">${l.status}</span>
-                </div>
-            `).join('') || '<p style="color:var(--text-muted);">Sin accesos registrados.</p>';
+                // Chart
+                try {
+                    const canvasEl = document.getElementById('financeChart');
+                    if (canvasEl && typeof Chart !== 'undefined') {
+                        const ctx = canvasEl.getContext('2d');
+                        if (chartInstance) chartInstance.destroy();
+                        chartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Ingresos', 'Gastos Pagados', 'Gastos Pendientes'],
+                                datasets: [{ data: [income, expensesPaid, expensesPend], backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b'], borderRadius: 6 }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                        });
+                    }
+                } catch(chartErr) {
+                    console.warn('[FitMetrics Dashboard] Chart rendering skipped safely:', chartErr);
+                }
 
-            // Members Table
-            const query = document.getElementById('search-members-input')?.value.toLowerCase() || '';
-            const filteredMembers = dbState.members.filter(m => {
-                const status = getMemberStatus(m.expire_date);
-                const matchFilter = currentMemberFilter === 'ALL' || status === currentMemberFilter;
-                const matchSearch = m.name.toLowerCase().includes(query) || m.dni.includes(query);
-                return matchFilter && matchSearch;
-            });
+                // Recent Logs
+                const logsEl = document.getElementById('dashboard-recent-logs');
+                if (logsEl) {
+                    logsEl.innerHTML = dbState.access_logs.slice(-5).reverse().map(l => `
+                        <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-glass);">
+                            <div><strong>${l.member_name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${l.time}</span></div>
+                            <span class="status-badge ${l.status}" style="font-size:0.65rem; padding:0.2rem 0.5rem;">${l.status}</span>
+                        </div>
+                    `).join('') || '<p style="color:var(--text-muted);">Sin accesos registrados.</p>';
+                }
 
-            document.getElementById('members-table-body').innerHTML = filteredMembers.map(m => {
-                const plan = dbState.plans.find(p => p.id === m.plan_id);
-                const status = getMemberStatus(m.expire_date);
-                return `
-                    <tr>
-                        <td><strong>${m.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span></td>
-                        <td>${m.phone || '-'}</td>
-                        <td><span style="font-size:0.8rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${plan ? plan.name : 'Sin Plan'}</span></td>
-                        <td>${m.start_date}</td>
-                        <td><strong>${m.expire_date}</strong></td>
-                        <td><span class="status-badge ${status}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${status}</span></td>
-                        <td>
-                            <div style="display:flex; gap:0.3rem;">
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membresía"><i class="fa-solid fa-rotate-right"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteMember('${m.id}')" title="Eliminar Socio"><i class="fa-solid fa-trash"></i></button>
+                // Members Table
+                const membersBody = document.getElementById('members-table-body');
+                if (membersBody) {
+                    const query = document.getElementById('search-members-input')?.value.toLowerCase() || '';
+                    const filteredMembers = dbState.members.filter(m => {
+                        const status = getMemberStatus(m.expire_date);
+                        let matchFilter = true;
+                        if (currentMemberFilter !== 'ALL') {
+                            matchFilter = status === currentMemberFilter;
+                        }
+                        const matchSearch = m.name.toLowerCase().includes(query) || m.dni.includes(query);
+                        return matchFilter && matchSearch;
+                    });
+
+                    membersBody.innerHTML = filteredMembers.map(m => {
+                        const plan = dbState.plans.find(p => p.id === m.plan_id);
+                        const status = getMemberStatus(m.expire_date);
+                        const waUrl = getWhatsAppUrl(m.phone, m.name);
+
+                        return `
+                            <tr>
+                                <td>
+                                    <strong>${m.name}</strong>
+                                    <br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span>
+                                </td>
+                                <td>
+                                    ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn-wa-link" title="Abrir chat de WhatsApp"><i class="fa-brands fa-whatsapp"></i> ${m.phone}</a>` : '-'}
+                                </td>
+                                <td>${formatBirthdate(m.birthdate)} ${calculateAge(m.birthdate) ? `<span style="font-size:0.75rem; color:var(--text-muted);">(${calculateAge(m.birthdate)})</span>` : ''}</td>
+                                <td>
+                                    <span style="font-size:0.8rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${plan ? `${plan.name} (${plan.workout_type || 'General'})` : 'Sin Plan'}</span>
+                                    ${plan ? `<br><span style="font-size:0.75rem; color:var(--success); font-weight:700;">$${formatMoney(plan.price)}</span>` : ''}
+                                </td>
+                                <td>${m.start_date}</td>
+                                <td><strong>${m.expire_date}</strong></td>
+                                <td><span class="status-badge ${status}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${status}</span></td>
+                                <td>
+                                    <div style="display:flex; gap:0.3rem;">
+                                        ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn btn-wa-icon" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membresía"><i class="fa-solid fa-rotate-right"></i> Renovar</button>
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i> Editar</button>
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteMember('${m.id}')" title="Eliminar Socio"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('') || '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios registrados. ¡Haz clic en "+ Nuevo Socio" para registrar uno!</td></tr>';
+                }
+
+                // Unified Plans Grid
+                const plansContainer = document.getElementById('plans-container');
+                if (plansContainer) {
+                    plansContainer.innerHTML = dbState.plans.map(p => `
+                        <div class="plan-card">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem;">
+                                    <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
+                                    <div style="display:flex; gap:0.4rem; flex-shrink:0;">
+                                        <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i> Editar</button>
+                                        <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i> Eliminar</button>
+                                    </div>
+                                </div>
+                                <div style="font-size:0.88rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">
+                                    🏋️‍♂️ Tipo de Entrenamiento: ${p.workout_type || 'General'}
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space:pre-wrap;">${p.description || 'Sin descripción'}</div>
                             </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay socios registrados. ¡Haz clic en "Nuevo Socio" para empezar!</td></tr>';
-
-            // Plans
-            document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
-                <div class="plan-card">
-                    <div>
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.85rem;">
-                            <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
-                            <div style="display:flex; gap:0.4rem; flex-shrink:0;">
-                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
+                            <div class="plan-price-tag" style="margin-top:1rem;">
+                                <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Cuota Mensual</span>
+                                <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${formatMoney(p.price)} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days || 30}d</span></div>
                             </div>
                         </div>
-                        <div style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">${p.description || 'Sin descripción'}</div>
-                    </div>
-                    <div class="plan-price-tag">
-                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Valor</span>
-                        <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${p.price.toLocaleString('es-AR')} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days}d</span></div>
-                    </div>
-                </div>
-            `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ¡Haz clic en "Crear Nuevo Plan" para añadir uno!</div>';
+                    `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ¡Haz clic en "Crear Nuevo Plan" para añadir uno!</div>';
+                }
 
-            // Payments (Ingresos)
-            document.getElementById('payments-table-body').innerHTML = dbState.payments.map(p => `
-                <tr>
-                    <td>${p.date}</td>
-                    <td><strong>${p.member_name}</strong></td>
-                    <td>${p.plan_name}</td>
-                    <td><strong style="color:var(--success);">$${p.amount.toLocaleString('es-AR')}</strong></td>
-                    <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
-                    <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
-                    <td>
-                        <div style="display:flex; gap:0.3rem;">
-                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openPaymentModal('${p.id}')" title="Editar Ingreso"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Ingreso"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay ingresos registrados este mes. ¡Haz clic en "Nuevo Ingreso" para agregar uno!</td></tr>';
+                // Payments (Ingresos)
+                const paymentsBody = document.getElementById('payments-table-body');
+                if (paymentsBody) {
+                    paymentsBody.innerHTML = dbState.payments.map(p => `
+                        <tr>
+                            <td>${p.date}</td>
+                            <td><strong>${p.member_name}</strong></td>
+                            <td>${p.plan_name}</td>
+                            <td><strong style="color:var(--success);">$${formatMoney(p.amount)}</strong></td>
+                            <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
+                            <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
+                            <td>
+                                <div style="display:flex; gap:0.3rem;">
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openPaymentModal('${p.id}')" title="Editar Ingreso"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Ingreso"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay ingresos registrados este mes. ¡Haz clic en "Nuevo Ingreso" para agregar uno!</td></tr>';
+                }
 
-            // Expenses (Filtered by ALL, FIJO, or VARIABLE)
-            const filteredExpenses = dbState.expenses.filter(e => {
-                const expType = e.type || 'VARIABLE';
-                if (currentExpenseFilter === 'ALL') return true;
-                return expType === currentExpenseFilter;
-            });
+                // Expenses (Filtered by ALL, FIJO, or VARIABLE)
+                const expensesBody = document.getElementById('expenses-table-body');
+                if (expensesBody) {
+                    const filteredExpenses = dbState.expenses.filter(e => {
+                        const expType = e.type || 'VARIABLE';
+                        if (currentExpenseFilter === 'ALL') return true;
+                        return expType === currentExpenseFilter;
+                    });
 
-            document.getElementById('expenses-table-body').innerHTML = filteredExpenses.map(e => {
-                const isFixed = e.type === 'FIJO';
-                const typeBadge = isFixed 
-                    ? `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(6,182,212,0.15); color:var(--primary); border:1px solid rgba(6,182,212,0.3); border-radius:4px; font-weight:700;"><i class="fa-solid fa-repeat"></i> FIJO</span>`
-                    : `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); color:var(--text-muted); border-radius:4px;"><i class="fa-solid fa-bolt"></i> VARIABLE</span>`;
+                    expensesBody.innerHTML = filteredExpenses.map(e => {
+                        const isFixed = e.type === 'FIJO';
+                        const typeBadge = isFixed 
+                            ? `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(6,182,212,0.15); color:var(--primary); border:1px solid rgba(6,182,212,0.3); border-radius:4px; font-weight:700;"><i class="fa-solid fa-repeat"></i> FIJO</span>`
+                            : `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); color:var(--text-muted); border-radius:4px;"><i class="fa-solid fa-bolt"></i> VARIABLE</span>`;
 
-                return `
-                    <tr>
-                        <td>${e.date}</td>
-                        <td><strong>${e.title}</strong></td>
-                        <td>${typeBadge}</td>
-                        <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
-                        <td><strong style="color:var(--danger);">$${e.amount.toLocaleString('es-AR')}</strong></td>
-                        <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
-                        <td>
-                            <div style="display:flex; gap:0.3rem;">
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados en esta categoría. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
+                        return `
+                            <tr>
+                                <td>${e.date}</td>
+                                <td><strong>${e.title}</strong></td>
+                                <td>${typeBadge}</td>
+                                <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
+                                <td><strong style="color:var(--danger);">$${formatMoney(e.amount)}</strong></td>
+                                <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
+                                <td>
+                                    <div style="display:flex; gap:0.3rem;">
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados en esta categoría. ¡Haz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
+                }
 
-            // Select Options
-            const planOpts = dbState.plans.map(p => `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} ($${p.price.toLocaleString('es-AR')})</option>`).join('');
-            document.getElementById('m-plan').innerHTML = planOpts;
-            document.getElementById('renew-plan').innerHTML = planOpts;
+                // Populate Plan Dropdowns
+                populatePlanSelects();
+            } catch(renderErr) {
+                console.error('[FitMetrics Dashboard] Master renderAll error caught safely:', renderErr);
+            }
+        }
+
+        function populatePlanSelects() {
+            const planSelect = document.getElementById('m-plan');
+            const renewSelect = document.getElementById('renew-plan');
+
+            if (planSelect && renewSelect) {
+                if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
+                    dbState.plans = [
+                        { id: 'p_101', name: 'Pase Libre Musculación', workout_type: 'Musculación & Máquinas', price: 28000, days: 30, description: 'Acceso ilimitado a musculación' },
+                        { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                    ];
+                }
+
+                const planOpts = dbState.plans.map(p => 
+                    `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} (${p.workout_type || 'General'}) — $${formatMoney(p.price)} / ${p.days}d</option>`
+                ).join('');
+
+                planSelect.innerHTML = planOpts;
+                renewSelect.innerHTML = planOpts;
+            }
         }
 
         /* Check Access */
@@ -1184,11 +1816,25 @@
             if (m) {
                 const status = getMemberStatus(m.expire_date);
                 const plan = dbState.plans.find(p => p.id === m.plan_id);
+                const isBday = isBirthdayToday(m.birthdate);
+
                 card.className = `access-display-card ${status}`;
                 badge.className = `status-badge ${status}`;
                 badge.innerText = status === 'ACTIVE' ? 'ACCESO PERMITIDO' : (status === 'WARNING' ? 'POR VENCER' : 'ACCESO DENEGADO');
                 icon.innerHTML = status === 'EXPIRED' ? '<i class="fa-solid fa-lock" style="color:var(--danger);"></i>' : '<i class="fa-solid fa-lock-open" style="color:var(--success);"></i>';
-                detail.innerHTML = `<strong>${m.name}</strong> (DNI: ${m.dni})<br>Plan: ${plan ? plan.name : 'N/A'}<br>Vencimiento: ${m.expire_date}`;
+                
+                let bdayNotice = '';
+                if (isBday) {
+                    bdayNotice = `
+                        <div style="margin-top:0.8rem; background:rgba(236,72,153,0.2); border:1px solid #ec4899; color:#f472b6; padding:0.6rem 1rem; border-radius:12px; font-weight:700;">
+                            🎂 ¡HOY ES SU CUMPLEAÑOS! 🎉<br>
+                            <span style="font-size:0.85rem; font-weight:400; color:#fff;">¡Dile feliz cumpleaños al ingresar!</span>
+                            ${m.phone ? `<br><a href="${getBirthdayWhatsAppUrl(m.phone, m.name)}" target="_blank" class="btn btn-wa-icon" style="margin-top:0.5rem; background:#25d366; color:#fff;"><i class="fa-brands fa-whatsapp"></i> Enviar Saludo por WhatsApp</a>` : ''}
+                        </div>
+                    `;
+                }
+
+                detail.innerHTML = `<strong>${m.name}</strong> (DNI: ${m.dni})<br>Plan: ${plan ? plan.name : 'N/A'}<br>Vencimiento: ${m.expire_date}${bdayNotice}`;
                 playBeep(status);
 
                 dbState.access_logs.push({ member_name: m.name, dni: m.dni, status: status, time: new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}) });
@@ -1215,6 +1861,8 @@
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         function openMemberModal(memberId) {
+            populatePlanSelects();
+
             if (memberId) {
                 const m = dbState.members.find(x => x.id === memberId);
                 if (!m) return;
@@ -1223,7 +1871,10 @@
                 document.getElementById('m-name').value = m.name;
                 document.getElementById('m-dni').value = m.dni;
                 document.getElementById('m-phone').value = m.phone || '';
-                document.getElementById('m-plan').value = m.plan_id;
+                document.getElementById('m-birthdate').value = m.birthdate || '';
+                if (m.plan_id) {
+                    document.getElementById('m-plan').value = m.plan_id;
+                }
                 document.getElementById('m-start').value = m.start_date;
                 document.getElementById('m-expire').value = m.expire_date;
             } else {
@@ -1232,57 +1883,199 @@
                 document.getElementById('m-name').value = '';
                 document.getElementById('m-dni').value = '';
                 document.getElementById('m-phone').value = '';
-                document.getElementById('m-start').value = new Date().toISOString().split('T')[0];
+                document.getElementById('m-birthdate').value = '';
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById('m-start').value = todayStr;
+                if (document.getElementById('m-plan').options.length > 0) {
+                    document.getElementById('m-plan').selectedIndex = 0;
+                }
                 calculateExpireDate();
             }
             openModal('modal-member');
         }
 
         function calculateExpireDate() {
-            const start = document.getElementById('m-start').value;
+            const startInput = document.getElementById('m-start');
             const planSel = document.getElementById('m-plan');
-            if (!start || !planSel.selectedOptions[0]) return;
-            const days = parseInt(planSel.selectedOptions[0].getAttribute('data-days')) || 30;
+            if (!startInput || !planSel) return;
+            const start = startInput.value;
+            if (!start || !planSel.options || !planSel.options.length) return;
+
+            let selectedOpt = planSel.options[planSel.selectedIndex];
+            if (!selectedOpt && planSel.options.length > 0) {
+                selectedOpt = planSel.options[0];
+                planSel.selectedIndex = 0;
+            }
+            if (!selectedOpt) return;
+
+            const days = parseInt(selectedOpt.getAttribute('data-days')) || 30;
             const d = new Date(start + 'T00:00:00');
             d.setDate(d.getDate() + days);
             document.getElementById('m-expire').value = d.toISOString().split('T')[0];
         }
 
-        async function saveMember(e) {
+        function saveMember(e) {
             e.preventDefault();
             const id = document.getElementById('m-id').value;
-            const name = document.getElementById('m-name').value;
-            const dni = document.getElementById('m-dni').value;
-            const phone = document.getElementById('m-phone').value;
+            const name = document.getElementById('m-name').value.trim();
+            const dni = document.getElementById('m-dni').value.trim();
+            const phone = document.getElementById('m-phone').value.trim();
+            const birthdate = document.getElementById('m-birthdate').value;
             const plan_id = document.getElementById('m-plan').value;
             const start_date = document.getElementById('m-start').value;
-            const expire_date = document.getElementById('m-expire').value;
+            let expire_date = document.getElementById('m-expire').value;
+
+            if (!name || !dni || !plan_id) {
+                alert('Por favor completa el nombre, DNI y selecciona un plan de membresía.');
+                return;
+            }
+
+            const selectedPlan = dbState.plans.find(p => p.id === plan_id);
+
+            // Guarantee expire_date is calculated if missing
+            if (!expire_date && start_date && selectedPlan) {
+                const days = selectedPlan.days || 30;
+                const d = new Date(start_date + 'T00:00:00');
+                d.setDate(d.getDate() + days);
+                expire_date = d.toISOString().split('T')[0];
+            }
 
             if (id) {
+                // Editing existing member
                 const m = dbState.members.find(x => x.id === id);
                 if (m) {
-                    m.name = name; m.dni = dni; m.phone = phone; m.plan_id = plan_id;
-                    m.start_date = start_date; m.expire_date = expire_date;
+                    m.name = name;
+                    m.dni = dni;
+                    m.phone = phone;
+                    m.birthdate = birthdate;
+                    m.plan_id = plan_id;
+                    m.start_date = start_date;
+                    m.expire_date = expire_date;
                 }
             } else {
-                const newId = 'm_' + Math.random().toString(36).substr(2, 6);
-                dbState.members.push({ id: newId, name, dni, phone, plan_id, start_date, expire_date });
-                try {
-                    await fetch(`${API_URL}/members`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, dni, phone, plan_id, start_date, expire_date })
+                // Registering NEW Member
+                const newMemberId = 'm_' + Math.random().toString(36).substr(2, 6);
+                const newMember = {
+                    id: newMemberId,
+                    name: name,
+                    dni: dni,
+                    phone: phone,
+                    birthdate: birthdate,
+                    plan_id: plan_id,
+                    start_date: start_date,
+                    expire_date: expire_date
+                };
+
+                dbState.members.unshift(newMember);
+
+                // AUTOMATICALLY REGISTER PAYMENT / INGRESO FOR THE ENROLLED MEMBER!
+                if (selectedPlan) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    dbState.payments.unshift({
+                        id: 'pay_' + Math.random().toString(36).substr(2, 6),
+                        member_id: newMemberId,
+                        member_name: name,
+                        plan_id: selectedPlan.id,
+                        plan_name: selectedPlan.name,
+                        amount: selectedPlan.price,
+                        method: 'Efectivo',
+                        date: todayStr,
+                        note: 'Alta e inscripción de nuevo socio'
                     });
-                } catch(err) {}
+                }
             }
+
             closeModal('modal-member');
+            saveState();
+            switchTab('members');
+        }
+
+        /* Workout Plan Handlers */
+        function openWorkoutPlanModal(wpId) {
+            if (wpId) {
+                const wp = dbState.workout_plans.find(x => x.id === wpId);
+                if (!wp) return;
+                document.getElementById('workout-plan-modal-title').innerText = 'Editar Plan de Entrenamiento';
+                document.getElementById('wp-id').value = wp.id;
+                document.getElementById('wp-name').value = wp.name;
+                document.getElementById('wp-objective').value = wp.objective || '';
+                document.getElementById('wp-level').value = wp.level || 'Intermedio';
+                document.getElementById('wp-details').value = wp.details || '';
+            } else {
+                document.getElementById('workout-plan-modal-title').innerText = 'Crear Plan de Entrenamiento';
+                document.getElementById('wp-id').value = '';
+                document.getElementById('wp-name').value = '';
+                document.getElementById('wp-objective').value = '';
+                document.getElementById('wp-level').value = 'Intermedio';
+                document.getElementById('wp-details').value = '';
+            }
+            openModal('modal-workout-plan');
+        }
+
+        function saveWorkoutPlan(e) {
+            e.preventDefault();
+            const id = document.getElementById('wp-id').value;
+            const name = document.getElementById('wp-name').value.trim();
+            const objective = document.getElementById('wp-objective').value.trim();
+            const level = document.getElementById('wp-level').value;
+            const details = document.getElementById('wp-details').value.trim();
+
+            if (!name || !details) {
+                alert('Por favor completa el nombre y el detalle de la rutina de entrenamiento.');
+                return;
+            }
+
+            if (!Array.isArray(dbState.workout_plans)) dbState.workout_plans = [];
+
+            if (id) {
+                const wp = dbState.workout_plans.find(x => x.id === id);
+                if (wp) {
+                    wp.name = name;
+                    wp.objective = objective;
+                    wp.level = level;
+                    wp.details = details;
+                }
+            } else {
+                const newId = 'wp_' + Math.random().toString(36).substr(2, 6);
+                dbState.workout_plans.unshift({ id: newId, name, objective, level, details });
+            }
+
+            closeModal('modal-workout-plan');
+            saveState();
+            switchTab('workout_plans');
+        }
+
+        function deleteWorkoutPlan(wpId) {
+            if (!confirm('¿Estás seguro de eliminar este plan de entrenamiento?')) return;
+            dbState.workout_plans = dbState.workout_plans.filter(x => x.id !== wpId);
             saveState();
         }
 
-        async function deleteMember(id) {
+        function openRoutineModal(memberId) {
+            const m = dbState.members.find(x => x.id === memberId);
+            if (!m) return;
+            const wp = (dbState.workout_plans || []).find(x => x.id === m.workout_plan_id);
+
+            document.getElementById('vr-member-name').innerText = `Rutina de ${m.name}`;
+            document.getElementById('vr-plan-name').innerText = wp ? `🏋️‍♂️ ${wp.name} (${wp.level || 'General'})` : 'Sin Plan de Entrenamiento Asignado';
+            document.getElementById('vr-details').innerText = wp ? wp.details : 'Este socio no tiene un plan de entrenamiento asignado actualmente. Edita el socio para asignarle una rutina.';
+
+            const waBtnContainer = document.getElementById('vr-wa-btn-container');
+            if (wp && m.phone) {
+                let cleanPhone = m.phone.replace(/\D/g, '');
+                if (cleanPhone.length === 10) cleanPhone = '549' + cleanPhone;
+                const msg = encodeURIComponent(`¡Hola ${m.name}! Te enviamos tu plan de entrenamiento de FitMetrics 🏋️✨:\n\n*${wp.name}*\n\n${wp.details}`);
+                waBtnContainer.innerHTML = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff; font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-brands fa-whatsapp"></i> Enviar Rutina por WhatsApp</a>`;
+            } else {
+                waBtnContainer.innerHTML = '';
+            }
+
+            openModal('modal-view-routine');
+        }
+
+        function deleteMember(id) {
             if (!confirm('¿Estás seguro de eliminar este socio?')) return;
             dbState.members = dbState.members.filter(m => m.id !== id);
-            try { await fetch(`${API_URL}/members/${id}`, { method: 'DELETE' }); } catch(e) {}
             saveState();
         }
 
@@ -1314,12 +2107,12 @@
         function savePayment(e) {
             e.preventDefault();
             const id = document.getElementById('pay-id').value;
-            const member_name = document.getElementById('pay-member-name').value;
-            const plan_name = document.getElementById('pay-plan-name').value;
-            const amount = parseFloat(document.getElementById('pay-amount').value);
+            const member_name = document.getElementById('pay-member-name').value.trim();
+            const plan_name = document.getElementById('pay-plan-name').value.trim();
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const method = document.getElementById('pay-method').value;
             const date = document.getElementById('pay-date').value;
-            const note = document.getElementById('pay-note').value;
+            const note = document.getElementById('pay-note').value.trim();
 
             if (id) {
                 const p = dbState.payments.find(x => x.id === id);
@@ -1347,6 +2140,7 @@
             }
             closeModal('modal-payment');
             saveState();
+            switchTab('payments');
         }
 
         function deletePayment(id) {
@@ -1386,7 +2180,7 @@
                 dbState.payments.unshift({
                     id: 'pay_' + Math.random().toString(36).substr(2,6),
                     member_id: m.id, member_name: m.name, plan_id: p.id, plan_name: p.name,
-                    amount: amt, method, date: new Date().toLocaleString('es-AR'), note: 'Renovación de cuota'
+                    amount: amt, method, date: new Date().toISOString().split('T')[0], note: 'Renovación de cuota'
                 });
             }
             closeModal('modal-renew');
@@ -1400,6 +2194,7 @@
                 document.getElementById('plan-modal-title').innerText = 'Editar Plan';
                 document.getElementById('plan-id').value = p.id;
                 document.getElementById('plan-name').value = p.name;
+                document.getElementById('plan-workout-type').value = p.workout_type || '';
                 document.getElementById('plan-price').value = p.price;
                 document.getElementById('plan-days').value = p.days;
                 document.getElementById('plan-description').value = p.description || '';
@@ -1407,6 +2202,7 @@
                 document.getElementById('plan-modal-title').innerText = 'Crear Nuevo Plan';
                 document.getElementById('plan-id').value = '';
                 document.getElementById('plan-name').value = '';
+                document.getElementById('plan-workout-type').value = '';
                 document.getElementById('plan-price').value = '';
                 document.getElementById('plan-days').value = '30';
                 document.getElementById('plan-description').value = '';
@@ -1414,54 +2210,45 @@
             openModal('modal-plan');
         }
 
-        async function savePlan(e) {
+        function savePlan(e) {
             e.preventDefault();
             const id = document.getElementById('plan-id').value;
-            const name = document.getElementById('plan-name').value;
-            const price = parseFloat(document.getElementById('plan-price').value);
+            const name = document.getElementById('plan-name').value.trim();
+            const workout_type = document.getElementById('plan-workout-type').value.trim();
+            const rawPrice = document.getElementById('plan-price').value;
+            const price = parseFloat(rawPrice) || 0;
             const days = parseInt(document.getElementById('plan-days').value) || 30;
-            const description = document.getElementById('plan-description').value;
+            const description = document.getElementById('plan-description').value.trim();
+
+            if (!name || !workout_type) {
+                alert('Por favor ingresa el nombre del plan y el tipo de entrenamiento.');
+                return;
+            }
 
             if (id) {
                 const p = dbState.plans.find(x => x.id === id);
                 if (p) {
                     p.name = name;
+                    p.workout_type = workout_type;
                     p.price = price;
                     p.days = days;
                     p.description = description;
                 }
-                try {
-                    await fetch(`${API_URL}/plans/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, price, days, description })
-                    });
-                } catch(err) {}
             } else {
                 const newId = 'p_' + Math.random().toString(36).substr(2, 6);
-                dbState.plans.push({ id: newId, name, price, days, description });
-                try {
-                    await fetch(`${API_URL}/plans`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, price, days, description })
-                    });
-                } catch(err) {}
+                dbState.plans.push({ id: newId, name, workout_type, price, days, description });
             }
 
             closeModal('modal-plan');
             saveState();
+            switchTab('plans');
         }
 
-        async function deletePlan(planId) {
+        function deletePlan(planId) {
             if (!confirm('¿Estás seguro de eliminar este plan?')) return;
             dbState.plans = dbState.plans.filter(p => p.id !== planId);
-            try {
-                await fetch(`${API_URL}/plans/${planId}`, { method: 'DELETE' });
-            } catch(err) {}
             saveState();
         }
-
 
         let currentExpenseFilter = 'ALL';
 
@@ -1497,41 +2284,44 @@
             openModal('modal-expense');
         }
 
-        async function saveExpense(e) {
+        function saveExpense(e) {
             e.preventDefault();
             const id = document.getElementById('exp-id').value;
-            const title = document.getElementById('exp-title').value;
+            const title = document.getElementById('exp-title').value.trim();
             const type = document.getElementById('exp-type').value;
             const category = document.getElementById('exp-category').value;
-            const amount = parseFloat(document.getElementById('exp-amount').value);
+            const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
             const date = document.getElementById('exp-date').value;
             const status = document.getElementById('exp-status').value;
+
+            if (!title || !amount) {
+                alert('Por favor completa el concepto y monto del gasto.');
+                return;
+            }
 
             if (id) {
                 const exp = dbState.expenses.find(x => x.id === id);
                 if (exp) {
-                    exp.title = title; exp.type = type; exp.category = category;
-                    exp.amount = amount; exp.date = date; exp.status = status;
+                    exp.title = title;
+                    exp.type = type;
+                    exp.category = category;
+                    exp.amount = amount;
+                    exp.date = date;
+                    exp.status = status;
                 }
             } else {
-                const newId = 'exp_' + Math.random().toString(36).substr(2,6);
+                const newId = 'exp_' + Math.random().toString(36).substr(2, 6);
                 dbState.expenses.unshift({ id: newId, title, type, category, amount, date, status });
-                try {
-                    await fetch(`${API_URL}/expenses`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, type, category, amount, date, status })
-                    });
-                } catch(err) {}
             }
+
             closeModal('modal-expense');
             saveState();
+            switchTab('expenses');
         }
 
-        async function deleteExpense(id) {
+        function deleteExpense(id) {
             if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
             dbState.expenses = dbState.expenses.filter(e => e.id !== id);
-            try { await fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }); } catch(e) {}
             saveState();
         }
 
@@ -1541,8 +2331,9 @@
         }
 
         window.onload = function() {
-            checkAuthSession();
-            renderAll();
+            try { checkAuthSession(); } catch(e) { console.error('Auth load error:', e); }
+            try { loadUserDatabase(); } catch(e) { console.error('DB load error:', e); }
+            try { renderAll(); } catch(e) { console.error('Render load error:', e); }
         };
     </script>
 </body>

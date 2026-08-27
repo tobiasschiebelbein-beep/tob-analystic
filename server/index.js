@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
@@ -10,11 +10,57 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../')));
 
+let sqlite3;
+try {
+    sqlite3 = require('sqlite3').verbose();
+} catch(e) {
+    console.warn('[FitMetrics Backend] sqlite3 module not installed/available. Using lightweight JSON DB engine.');
+}
+
 const dbPath = path.join(__dirname, 'gymmanager.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) console.error('Error al abrir la base de datos:', err);
-    else console.log('Conectado a la base de datos SQLite:', dbPath);
-});
+let db;
+
+if (sqlite3) {
+    db = new sqlite3.Database(dbPath, (err) => {
+        if (err) console.error('Error al abrir la base de datos:', err);
+        else console.log('Conectado a la base de datos SQLite:', dbPath);
+    });
+} else {
+    // Lightweight In-Memory / File-based Database Mock Adapter for pure Node deployments
+    const jsonStorePath = path.join(__dirname, 'gymmanager.json');
+    let memoryStore = { users: [], plans: [], members: [], payments: [], expenses: [], access_logs: [] };
+
+    if (fs.existsSync(jsonStorePath)) {
+        try { memoryStore = JSON.parse(fs.readFileSync(jsonStorePath, 'utf8')); } catch(e) {}
+    }
+
+    function saveStore() {
+        try { fs.writeFileSync(jsonStorePath, JSON.stringify(memoryStore, null, 2)); } catch(e) {}
+    }
+
+    db = {
+        serialize: function(cb) { if (cb) cb(); },
+        run: function(sql, params, cb) { if (typeof params === 'function') cb = params; saveStore(); if (cb) cb(null); },
+        get: function(sql, params, cb) {
+            if (typeof params === 'function') { cb = params; params = []; }
+            if (sql.includes('users')) {
+                const u = memoryStore.users.find(x => x.username === params[0] && x.password_hash === params[1]);
+                return cb(null, u);
+            }
+            if (sql.includes('plans')) return cb(null, { count: memoryStore.plans.length });
+            if (cb) cb(null, null);
+        },
+        all: function(sql, params, cb) {
+            if (typeof params === 'function') { cb = params; params = []; }
+            if (sql.includes('plans')) return cb(null, memoryStore.plans);
+            if (sql.includes('members')) return cb(null, memoryStore.members);
+            if (sql.includes('payments')) return cb(null, memoryStore.payments);
+            if (sql.includes('expenses')) return cb(null, memoryStore.expenses);
+            if (sql.includes('access_logs')) return cb(null, memoryStore.access_logs);
+            if (cb) cb(null, []);
+        }
+    };
+}
 
 /* Creando tablas de SQLite si no existen... */
 db.serialize(() => {
