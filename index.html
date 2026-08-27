@@ -51,7 +51,8 @@
         .auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(7, 10, 18, 0.95);
+            background: rgba(7, 10, 18, 0.98);
+            -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             z-index: 999;
             display: flex;
@@ -333,8 +334,8 @@
         .filter-btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; cursor: pointer; }
         .filter-btn.active { background: var(--primary); color: #fff; }
 
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal-backdrop.open { display: flex; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
+        .modal-backdrop.open { display: flex; pointer-events: auto; }
         .modal-box { background: #0f172a; border: 1px solid var(--border-glass); border-radius: 18px; width: 100%; max-width: 500px; padding: 1.5rem; }
         .form-group { margin-bottom: 1rem; text-align: left; }
         .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; font-size: 0.92rem; transition: border-color 0.2s; }
@@ -1019,20 +1020,44 @@
                 dbState = {};
             }
 
-            if (!Array.isArray(dbState.members)) dbState.members = [];
             if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
                 dbState.plans = [
                     { id: 'p_101', name: 'Pase Libre Musculación', workout_type: 'Musculación & Máquinas', price: 28000, days: 30, description: 'Acceso ilimitado a salón de musculación, peso libre y cardio.' },
                     { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por profesores, alta intensidad y acondicionamiento.' }
                 ];
             }
-            // Ensure all plans have workout_type property
             dbState.plans.forEach(p => {
                 if (!p.workout_type) p.workout_type = p.name || 'Entrenamiento General';
             });
 
-            if (!Array.isArray(dbState.payments)) dbState.payments = [];
-            if (!Array.isArray(dbState.expenses)) dbState.expenses = [];
+            if (!Array.isArray(dbState.members) || dbState.members.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.members = [
+                    { id: 'm_101', name: 'Carlos Rodríguez', dni: '35899221', phone: '1144556677', birthdate: '1992-05-14', plan_id: 'p_101', start_date: `${curMonthStr}-01`, expire_date: '2026-09-30' },
+                    { id: 'm_102', name: 'Mariana Gómez', dni: '38123456', phone: '1122334455', birthdate: '1995-11-20', plan_id: 'p_102', start_date: `${curMonthStr}-05`, expire_date: '2026-09-30' },
+                    { id: 'm_103', name: 'Lucas Fernández', dni: '40998877', phone: '1199887766', birthdate: '1998-03-08', plan_id: 'p_101', start_date: `${curMonthStr}-10`, expire_date: '2026-08-15' }
+                ];
+            }
+
+            if (!Array.isArray(dbState.payments) || dbState.payments.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.payments = [
+                    { id: 'pay_1', date: `${curMonthStr}-01`, member_name: 'Carlos Rodríguez', plan_name: 'Pase Libre Musculación', amount: 28000, method: 'Efectivo', note: 'Cuota mensual' },
+                    { id: 'pay_2', date: `${curMonthStr}-05`, member_name: 'Mariana Gómez', plan_name: 'Crossfit & Funcional', amount: 35000, method: 'Mercado Pago', note: 'Cuota mensual' }
+                ];
+            }
+
+            if (!Array.isArray(dbState.expenses) || dbState.expenses.length === 0) {
+                const now = new Date();
+                const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                dbState.expenses = [
+                    { id: 'exp_1', title: 'Alquiler del Local', type: 'FIJO', category: 'Alquiler', amount: 150000, date: `${curMonthStr}-01`, status: 'PAGADO' },
+                    { id: 'exp_2', title: 'Servicio de Internet y WiFi', type: 'FIJO', category: 'Servicios', amount: 18000, date: `${curMonthStr}-03`, status: 'PAGADO' }
+                ];
+            }
+
             if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
 
             renderAll();
