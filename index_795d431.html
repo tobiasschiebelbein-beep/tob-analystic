@@ -1,0 +1,2299 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>FitMetrics - Plataforma de Gesti├│n y Anal├¡tica de Gimnasios</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #070a12;
+            --bg-card: rgba(15, 23, 42, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(6, 182, 212, 0.4);
+            
+            --primary: #06b6d4;
+            --primary-glow: rgba(6, 182, 212, 0.25);
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 260px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', 'Inter', sans-serif; }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* Fullscreen Authentication Overlay */
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(7, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 440px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-brand-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; color: #fff;
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+
+        .auth-brand h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 4px;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-glass);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #fff;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .email-sim-box {
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px dashed var(--primary);
+            border-radius: 14px;
+            padding: 0.9rem 1.1rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-size: 0.88rem;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .email-sim-code {
+            display: inline-block;
+            background: #0f172a;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 5px;
+            padding: 0.35rem 0.9rem;
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(13, 18, 30, 0.85);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; margin-bottom: 2rem; }
+        .brand-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; color: #fff; box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .brand-text h1 { font-size: 1.3rem; font-weight: 800; }
+        .brand-text p { font-size: 0.7rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+        .nav-item {
+            display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem;
+            border-radius: 10px; color: var(--text-muted); font-weight: 500; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent;
+        }
+        .nav-item:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
+        .nav-item.active {
+            color: #fff; background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), transparent);
+            border-left: 3px solid var(--primary); border-color: var(--border-active);
+        }
+
+        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-glass); }
+        .status-badge-live {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.85rem;
+            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px; font-size: 0.8rem; color: var(--success); font-weight: 600;
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; background-color: var(--success); border-radius: 50%;
+            box-shadow: 0 0 8px var(--success); animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity:0.8; } 50% { opacity:1; transform:scale(1.2); } }
+
+        .main-wrapper { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar {
+            height: 70px; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border-glass); background: rgba(9, 13, 22, 0.5); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 40;
+        }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem;
+            border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #0284c7); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: #fff; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid var(--border-glass); }
+        .btn-logout { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-logout:hover { background: var(--danger); color: #fff; }
+        .btn-wa-icon {
+            background: rgba(37, 211, 102, 0.18);
+            color: #25d366;
+            border: 1px solid rgba(37, 211, 102, 0.35);
+            padding: 0.35rem 0.65rem;
+            font-size: 0.88rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-wa-icon:hover {
+            background: #25d366;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-wa-link {
+            color: #25d366;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: color 0.2s;
+        }
+        .btn-wa-link:hover {
+            text-decoration: underline;
+            color: #4ade80;
+        }
+        .birthday-banner {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(139, 92, 246, 0.22));
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            border-radius: 16px;
+            padding: 1.1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.18);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .user-profile-widget {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.4rem 0.85rem; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass); border-radius: 50px;
+        }
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; color: #fff;
+        }
+
+        .content-body { padding: 2rem; flex: 1; }
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+        .kpi-card {
+            background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-glass);
+            border-radius: 16px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem;
+        }
+        .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .kpi-icon.cyan { background: rgba(6, 182, 212, 0.15); color: var(--primary); }
+        .kpi-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .kpi-icon.amber { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .kpi-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .kpi-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--secondary); }
+
+        .glass-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-glass); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+        .card-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+
+        .turnstile-box { max-width: 650px; margin: 0 auto; text-align: center; }
+        .scan-input-group { display: flex; gap: 0.75rem; margin: 1.5rem 0; }
+        .scan-input-group input {
+            flex: 1; background: rgba(0, 0, 0, 0.4); border: 2px solid var(--border-glass);
+            border-radius: 12px; padding: 0.9rem 1.25rem; font-size: 1.2rem; color: #fff; outline: none;
+        }
+        .scan-input-group input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+
+        .access-display-card {
+            background: rgba(0, 0, 0, 0.4); border: 2px solid var(--border-glass); border-radius: 20px;
+            padding: 2rem; margin-top: 1rem; transition: all 0.3s;
+        }
+        .access-display-card.ACTIVE { border-color: var(--success); box-shadow: 0 0 35px rgba(16, 185, 129, 0.25); }
+        .access-display-card.WARNING { border-color: var(--warning); box-shadow: 0 0 35px rgba(245, 158, 11, 0.25); }
+        .access-display-card.EXPIRED { border-color: var(--danger); box-shadow: 0 0 35px rgba(239, 68, 68, 0.25); }
+
+        .status-badge { display: inline-block; padding: 0.35rem 1rem; border-radius: 50px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.8rem; }
+        .status-badge.ACTIVE { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .status-badge.WARNING { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .status-badge.EXPIRED { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .status-badge.NOT_FOUND { background: rgba(148, 163, 184, 0.2); color: #94a3b8; border: 1px solid #94a3b8; }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 0.85rem; background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-size: 0.82rem; text-transform: uppercase; border-bottom: 1px solid var(--border-glass); }
+        td { padding: 0.85rem; border-bottom: 1px solid var(--border-glass); font-size: 0.92rem; }
+
+        .filter-bar { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+        .filter-btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; cursor: pointer; }
+        .filter-btn.active { background: var(--primary); color: #fff; }
+
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-backdrop.open { display: flex; }
+        .modal-box { background: #0f172a; border: 1px solid var(--border-glass); border-radius: 18px; width: 100%; max-width: 500px; padding: 1.5rem; }
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        .form-control { width: 100%; padding: 0.65rem 0.9rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; outline: none; font-size: 0.92rem; transition: border-color 0.2s; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); }
+        select.form-control { cursor: pointer; }
+        select.form-control option { background-color: #0f172a; color: #ffffff; padding: 0.5rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .plan-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-top: 4px solid var(--primary);
+            border-radius: 20px;
+            padding: 1.75rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-4px);
+            border-top-color: var(--secondary);
+            box-shadow: 0 20px 45px rgba(6, 182, 212, 0.18);
+        }
+
+        .plan-price-tag {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 0.9rem 1.2rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile & Tablet Responsive Adjustments */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-glass);
+                padding: 1rem;
+            }
+
+            .brand {
+                margin-bottom: 0.8rem;
+                justify-content: space-between;
+            }
+
+            .nav-menu {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 0.4rem;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+                gap: 0.5rem;
+            }
+
+            .nav-item {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+            }
+
+            .sidebar-footer {
+                display: none;
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .topbar {
+                height: auto;
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: stretch;
+            }
+
+            .topbar > div {
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .content-body {
+                padding: 1rem;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .kpi-card {
+                padding: 0.9rem;
+                gap: 0.6rem;
+            }
+
+            .kpi-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+
+            .kpi-card h3 {
+                font-size: 1.1rem;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-bar input {
+                width: 100% !important;
+            }
+
+            table {
+                min-width: 580px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr !important;
+            }
+
+            .modal-box {
+                max-width: 92vw;
+                padding: 1.25rem;
+            }
+
+            .scan-input-group {
+                flex-direction: column;
+            }
+
+            .scan-input-group input {
+                width: 100%;
+            }
+
+            .auth-card {
+                padding: 1.8rem 1.2rem;
+                max-width: 92vw;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTICATION OVERLAY PORTAL -->
+    <div id="auth-portal" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="auth-brand-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h2>FitMetrics</h2>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Plataforma de Inteligencia y Gesti├│n</p>
+
+            <div class="auth-tabs">
+                <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthTab('login'); return false;">Iniciar Sesi├│n</button>
+                <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthTab('register'); return false;">Crear Cuenta</button>
+                <button type="button" id="tab-recover" class="auth-tab" onclick="switchAuthTab('recover'); return false;">Recuperar</button>
+            </div>
+
+            <div id="auth-error-msg" style="display:none; color: var(--danger); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
+            <div id="auth-success-msg" style="display:none; color: var(--success); font-size: 0.85rem; margin-bottom: 1rem; font-weight: 600;"></div>
+
+            <!-- Email Simulation Notification Container -->
+            <div id="auth-email-sim-container" style="display:none;"></div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label>Usuario o Email</label>
+                    <input type="text" id="auth-login-username" class="form-control" placeholder="Ej: admin o admin@fitmetrics.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contrase├▒a</label>
+                    <input type="password" id="auth-login-password" class="form-control" placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó" required>
+                    <div style="text-align: right; margin-top: 0.4rem;">
+                        <a href="#" onclick="switchAuthTab('recover'); return false;" style="color: var(--primary); font-size: 0.82rem; text-decoration: none; font-weight: 500;">┬┐Olvidaste tu contrase├▒a?</a>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesi├│n
+                </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ┬┐No tienes cuenta todav├¡a? <a href="#" onclick="switchAuthTab('register'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Crear una cuenta</a>
+                </div>
+            </form>
+
+            <!-- Register Form Step 1: Input details -->
+            <form id="form-register" style="display: none;" onsubmit="handleRegisterStep1(event)">
+                <div class="form-group">
+                    <label>Nombre de Usuario (├Ünico para tu gimnasio)</label>
+                    <input type="text" id="auth-reg-username" class="form-control" placeholder="Ej: gimnasio_central" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electr├│nico (Email real para verificaci├│n)</label>
+                    <input type="email" id="auth-reg-email" class="form-control" placeholder="Ej: contacto@gimnasio.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contrase├▒a</label>
+                    <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea tu contrase├▒a" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Contrase├▒a</label>
+                    <input type="password" id="auth-reg-confirm" class="form-control" placeholder="Repite tu contrase├▒a" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar C├│digo de Verificaci├│n
+                </button>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    ┬┐Ya tienes una cuenta? <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;">Iniciar Sesi├│n</a>
+                </div>
+            </form>
+
+            <!-- Register Form Step 2: Code Verification -->
+            <form id="form-register-verify" style="display: none;" onsubmit="handleRegisterVerifySubmit(event)">
+                <div style="text-align: left; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Ingresa el <strong>c├│digo de verificaci├│n de 6 d├¡gitos</strong> enviado a tu correo electr├│nico para activar la cuenta.
+                </div>
+                <div class="form-group">
+                    <label>C├│digo de Verificaci├│n (6 d├¡gitos)</label>
+                    <input type="text" id="auth-reg-code-input" class="form-control" placeholder="Ej: 849201" maxlength="6" style="letter-spacing: 4px; font-size: 1.25rem; text-align: center; font-weight: 800;" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                    <i class="fa-solid fa-circle-check"></i> Verificar C├│digo y Crear Cuenta
+                </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="resendRegistrationCode()">
+                        <i class="fa-solid fa-rotate"></i> Reenviar C├│digo
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="switchAuthTab('register')">
+                        <i class="fa-solid fa-arrow-left"></i> Cambiar Datos
+                    </button>
+                </div>
+            </form>
+
+            <!-- Recover Password Form -->
+            <form id="form-recover" style="display: none;" onsubmit="handleRecoverSubmit(event)">
+                <div id="recover-step-1">
+                    <div class="form-group">
+                        <label>Ingresa tu Email o Usuario Registrado</label>
+                        <input type="text" id="auth-recover-input" class="form-control" placeholder="Ej: contacto@gimnasio.com o admin">
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;" onclick="verifyAccountForRecovery()">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar C├│digo a mi Email
+                    </button>
+                </div>
+                <div id="recover-step-2" style="display: none;">
+                    <div id="recover-account-info" style="background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; padding: 0.75rem; font-size: 0.85rem; color: #fff; margin-bottom: 1rem; text-align: left;"></div>
+                    <div class="form-group">
+                        <label>C├│digo de Recuperaci├│n (6 d├¡gitos)</label>
+                        <input type="text" id="auth-recover-code-input" class="form-control" placeholder="Ej: 719304" maxlength="6" style="letter-spacing: 4px; font-size: 1.15rem; text-align: center; font-weight: 800;">
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva Contrase├▒a</label>
+                        <input type="password" id="auth-recover-new-password" class="form-control" placeholder="Escribe tu nueva contrase├▒a">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Nueva Contrase├▒a</label>
+                        <input type="password" id="auth-recover-confirm-password" class="form-control" placeholder="Repite tu nueva contrase├▒a">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 0.75rem; padding: 0.75rem;">
+                        <i class="fa-solid fa-key"></i> Validar C├│digo y Restablecer
+                    </button>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+                    <a href="#" onclick="switchAuthTab('login'); return false;" style="color: var(--primary); font-weight: 600; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Volver a Iniciar Sesi├│n</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="brand-text">
+                <h1>FitMetrics</h1>
+                <p>Gym Intelligence</p>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></li>
+            <li class="nav-item" onclick="switchTab('access')"><i class="fa-solid fa-torii-gate"></i><span>Molinete / Acceso</span></li>
+            <li class="nav-item" onclick="switchTab('members')"><i class="fa-solid fa-users"></i><span>Socios</span></li>
+            <li class="nav-item" onclick="switchTab('birthdays')"><i class="fa-solid fa-cake-candles"></i><span>Cumplea├▒os</span></li>
+            <li class="nav-item" onclick="switchTab('plans')"><i class="fa-solid fa-list-check"></i><span>Planes y Membres├¡as</span></li>
+            <li class="nav-item" onclick="switchTab('payments')"><i class="fa-solid fa-receipt"></i><span>Cobranzas</span></li>
+            <li class="nav-item" onclick="switchTab('expenses')"><i class="fa-solid fa-wallet"></i><span>Gastos</span></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="status-badge-live">
+                <div class="pulse-dot"></div>
+                <span id="backend-status-text">FitMetrics Engine Listo</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="page-title" style="display:flex; align-items:center; gap:0.6rem;"><h2 id="topbar-title">Dashboard General</h2><span style="font-size:0.75rem; background:rgba(6,182,212,0.15); color:var(--primary); padding:0.2rem 0.6rem; border-radius:50px; font-weight:700;">FitMetrics v1.3</span></div>
+            
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <!-- User Profile Session Badge with Logout -->
+                <div class="user-profile-widget">
+                    <div id="user-avatar" class="user-avatar">A</div>
+                    <span id="user-display-name" style="font-size: 0.88rem; font-weight: 600;">Admin</span>
+                    <button class="btn btn-logout" style="padding: 0.3rem 0.75rem; font-size: 0.8rem; margin-left: 0.4rem;" onclick="logoutUser()" title="Cerrar Sesi├│n">
+                        <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesi├│n
+                    </button>
+                <button class="btn btn-primary" onclick="openMemberModal()"><i class="fa-solid fa-user-plus"></i> Nuevo Socio</button>
+            </div>
+        </header>
+
+        <div class="content-body">
+
+            <!-- 1. DASHBOARD VIEW -->
+            <div id="view-dashboard" class="view-panel active">
+                <div id="dashboard-birthday-banner"></div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card"><div class="kpi-icon cyan"><i class="fa-solid fa-users"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Total Socios</p><h3 id="kpi-total-members">0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-user-check"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Socios Activos</p><h3 id="kpi-active-members">0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-clock"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Por Vencer (Γëñ5d)</p><h3 id="kpi-expiring-members">0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon red"><i class="fa-solid fa-user-xmark"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Vencidos</p><h3 id="kpi-expired-members">0</h3></div></div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card" onclick="switchTab('birthdays')" style="cursor:pointer;" title="Ver Calendario de Cumplea├▒os"><div class="kpi-icon" style="background:rgba(236,72,153,0.15); color:#ec4899;"><i class="fa-solid fa-cake-candles"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Cumplea├▒os de Hoy</p><h3 id="kpi-today-birthdays" style="color:#ec4899;">0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Ingresos del Mes</p><h3 id="kpi-income">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pagados (Mes)</p><h3 id="kpi-expenses">$0</h3></div></div>
+                    <div class="kpi-card"><div class="kpi-icon amber"><i class="fa-solid fa-hourglass-half"></i></div><div><p style="color:var(--text-muted); font-size:0.8rem;">Gastos Pendientes (Mes)</p><h3 id="kpi-pending-expenses">$0</h3></div></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div class="glass-card">
+                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-column"></i> Ingresos vs Gastos - FitMetrics</div>
+                        <div style="height: 260px;"><canvas id="financeChart"></canvas></div>
+                    </div>
+                    <div class="glass-card">
+                        <div class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-history"></i> Accesos Recientes</div>
+                        <div id="dashboard-recent-logs" style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ACCESS CONTROL VIEW -->
+            <div id="view-access" class="view-panel">
+                <div class="glass-card turnstile-box">
+                    <div class="card-title" style="justify-content: center; font-size: 1.3rem;"><i class="fa-solid fa-torii-gate"></i> Control de Acceso por DNI</div>
+                    <div class="scan-input-group">
+                        <input type="text" id="access-input" placeholder="Ingrese o escanee DNI..." onkeypress="if(event.key==='Enter') checkAccess()">
+                        <button class="btn btn-primary" onclick="checkAccess()"><i class="fa-solid fa-barcode"></i> Validar</button>
+                    </div>
+
+                    <div id="access-card" class="access-display-card NOT_FOUND">
+                        <div id="turnstile-gate-icon" style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-lock" style="color: #94a3b8;"></i></div>
+                        <div id="access-badge" class="status-badge NOT_FOUND">ESPERANDO ESCANEO</div>
+                        <div id="access-detail" style="font-size: 1.05rem; color: #cbd5e1;">Ingrese un DNI en el campo superior.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MEMBERS VIEW -->
+            <div id="view-members" class="view-panel">
+                <div class="glass-card">
+                    <div class="filter-bar">
+                        <div>
+                            <button class="filter-btn active" onclick="filterMembers('ALL', this)">Todos</button>
+                            <button class="filter-btn" onclick="filterMembers('ACTIVE', this)">Activos</button>
+                            <button class="filter-btn" onclick="filterMembers('WARNING', this)">Por Vencer</button>
+                            <button class="filter-btn" onclick="filterMembers('EXPIRED', this)">Vencidos</button>
+                            <button class="filter-btn" onclick="filterMembers('BIRTHDAY', this)" style="border-color: rgba(236,72,153,0.4); color: #ec4899;"><i class="fa-solid fa-cake-candles"></i> Cumplea├▒eros</button>
+                        </div>
+                        <input type="text" id="search-members-input" class="form-control" style="width: 240px;" placeholder="Buscar socio..." oninput="renderMembersTable()">
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Socio / DNI</th><th>Tel├⌐fono</th><th>F. Nacimiento</th><th>Plan</th><th>F. Inicio</th><th>F. Vencimiento</th><th>Estado</th><th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. BIRTHDAYS CALENDAR VIEW -->
+            <div id="view-birthdays" class="view-panel">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-cake-candles" style="color:#ec4899;"></i> Calendario & Notificaci├│n de Cumplea├▒os</div>
+                    </div>
+                    <div id="birthday-today-section" style="margin-bottom: 1.5rem;"></div>
+                    
+                    <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--primary); display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fa-solid fa-calendar-days"></i> Todos los Cumplea├▒os Registrados
+                    </h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th><th>Socio / DNI</th><th>Edad</th><th>Tel├⌐fono / WhatsApp</th><th>Estado</th><th>Acci├│n WhatsApp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="birthdays-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. UNIFIED PLANS VIEW -->
+            <div id="view-plans" class="view-panel">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title" style="font-size:1.25rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Planes y Membres├¡as</div>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Crea los planes de tu gimnasio definiendo el tipo de entrenamiento, duraci├│n, ejercicios incluidos y valor de la cuota mensual.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openPlanModal()"><i class="fa-solid fa-plus"></i> Crear Nuevo Plan</button>
+                    </div>
+                    <div class="plans-grid" id="plans-container" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+
+            <!-- 5. PAYMENTS VIEW (INGRESOS) -->
+            <div id="view-payments" class="view-panel">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-receipt"></i> Historial de Ingresos / Cobranzas</div>
+                        <button class="btn btn-primary" onclick="openPaymentModal()"><i class="fa-solid fa-plus"></i> Nuevo Ingreso</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>M├⌐todo</th><th>Notas</th><th>Acci├│n</th></tr></thead>
+                            <tbody id="payments-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. EXPENSES VIEW -->
+            <div id="view-expenses" class="view-panel">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-wallet"></i> Gastos Registrados</div>
+                        <button class="btn btn-primary" onclick="openExpenseModal()"><i class="fa-solid fa-plus"></i> Nuevo Gasto</button>
+                    </div>
+                    <div class="filter-bar">
+                        <div>
+                            <button class="filter-btn active" onclick="filterExpenses('ALL', this)">Todos los Gastos</button>
+                            <button class="filter-btn" onclick="filterExpenses('FIJO', this)">≡ƒôî Gastos Fijos (Perdurables)</button>
+                            <button class="filter-btn" onclick="filterExpenses('VARIABLE', this)">ΓÜí Gastos Variables</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Categor├¡a</th><th>Monto</th><th>Estado</th><th>Acci├│n</th></tr></thead>
+                            <tbody id="expenses-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="modal-member" class="modal-backdrop">
+        <div class="modal-box">
+            <h3 id="member-modal-title" style="margin-bottom: 1rem;">Nuevo Socio</h3>
+            <form onsubmit="saveMember(event)">
+                <input type="hidden" id="m-id">
+                <div class="form-group"><label>Nombre Completo</label><input type="text" id="m-name" class="form-control" placeholder="Ej: Juan P├⌐rez" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>DNI</label><input type="text" id="m-dni" class="form-control" placeholder="Ej: 38999444" required></div>
+                    <div class="form-group"><label>Tel├⌐fono (WhatsApp)</label><input type="text" id="m-phone" class="form-control" placeholder="Ej: 1122334455"></div>
+                </div>
+                <div class="form-group"><label>Fecha de Nacimiento ≡ƒÄé</label><input type="date" id="m-birthdate" class="form-control"></div>
+                <div class="form-group"><label>Plan de Membres├¡a</label><select id="m-plan" class="form-control" required onchange="calculateExpireDate()"></select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha Inicio</label><input type="date" id="m-start" class="form-control" required onchange="calculateExpireDate()"></div>
+                    <div class="form-group"><label>Fecha Vencimiento</label><input type="date" id="m-expire" class="form-control" required></div>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-member')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar y Registrar Socio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-renew" class="modal-backdrop">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 1rem;">Renovar Membres├¡a</h3>
+            <form onsubmit="saveRenewal(event)">
+                <input type="hidden" id="renew-member-id">
+                <div class="form-group"><label>Socio</label><input type="text" id="renew-member-name" class="form-control" readonly></div>
+                <div class="form-group"><label>Plan</label><select id="renew-plan" class="form-control" required onchange="updateRenewAmount()"></select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="renew-amount" class="form-control" required></div>
+                    <div class="form-group"><label>M├⌐todo</label>
+                        <select id="renew-method" class="form-control">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Mercado Pago">Mercado Pago</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-renew')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Cobrar y Renovar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Crear / Editar Ingreso / Cobranza -->
+    <div id="modal-payment" class="modal-backdrop">
+        <div class="modal-box">
+            <h3 id="payment-modal-title" style="margin-bottom: 1rem;">Nuevo Ingreso</h3>
+            <form onsubmit="savePayment(event)">
+                <input type="hidden" id="pay-id">
+                <div class="form-group"><label>Nombre del Socio</label><input type="text" id="pay-member-name" class="form-control" required placeholder="Ej: Juan P├⌐rez"></div>
+                <div class="form-group"><label>Plan / Concepto</label><input type="text" id="pay-plan-name" class="form-control" required placeholder="Ej: Pase Libre Musculaci├│n"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="pay-amount" class="form-control" required placeholder="28000"></div>
+                    <div class="form-group"><label>M├⌐todo de Pago</label>
+                        <select id="pay-method" class="form-control">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Mercado Pago">Mercado Pago</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Fecha</label><input type="date" id="pay-date" class="form-control" required></div>
+                <div class="form-group"><label>Notas / Observaciones</label><input type="text" id="pay-note" class="form-control" placeholder="Ej: Pago cuota mensual"></div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-payment')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Ingreso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-expense" class="modal-backdrop">
+        <div class="modal-box">
+            <h3 id="expense-modal-title" style="margin-bottom: 1rem;">Nuevo Gasto</h3>
+            <form onsubmit="saveExpense(event)">
+                <input type="hidden" id="exp-id">
+                <div class="form-group"><label>Concepto</label><input type="text" id="exp-title" class="form-control" placeholder="Ej: Alquiler del Local" required></div>
+                <div class="form-group">
+                    <label>Tipo de Gasto</label>
+                    <select id="exp-type" class="form-control">
+                        <option value="FIJO">≡ƒôî Gasto Fijo (Perdura todos los meses - Ej: Alquiler, Sueldos, Internet)</option>
+                        <option value="VARIABLE">ΓÜí Gasto Variable (├Ünico / Espec├¡fico de este mes - Ej: Reparaciones, Insumos)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Categor├¡a</label>
+                        <select id="exp-category" class="form-control">
+                            <option value="Alquiler">Alquiler</option><option value="Servicios">Servicios</option><option value="Sueldos">Sueldos</option><option value="Mantenimiento">Mantenimiento</option><option value="Insumos">Insumos</option><option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Monto ($)</label><input type="number" id="exp-amount" class="form-control" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha</label><input type="date" id="exp-date" class="form-control" required></div>
+                    <div class="form-group"><label>Estado</label><select id="exp-status" class="form-control"><option value="PAGADO">PAGADO</option><option value="PENDIENTE">PENDIENTE</option></select></div>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-expense')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Gasto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Crear / Editar Plan Unificado -->
+    <div id="modal-plan" class="modal-backdrop">
+        <div class="modal-box" style="max-width: 620px;">
+            <h3 id="plan-modal-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Crear / Editar Plan</h3>
+            <form onsubmit="savePlan(event)">
+                <input type="hidden" id="plan-id">
+                <div class="form-group">
+                    <label>Nombre del Plan</label>
+                    <input type="text" id="plan-name" class="form-control" required placeholder="Ej: Musculaci├│n Pase Libre, Crossfit & Funcional, etc.">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo / Disciplina de Entrenamiento ≡ƒÅï∩╕ÅΓÇìΓÖé∩╕Å</label>
+                        <input type="text" id="plan-workout-type" class="form-control" placeholder="Ej: Musculaci├│n, Funcional, Crossfit, Pilates..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor de la Cuota Mensual ($)</label>
+                        <input type="number" id="plan-price" class="form-control" required placeholder="28000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Duraci├│n (D├¡as)</label>
+                        <input type="number" id="plan-days" class="form-control" required placeholder="30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripci├│n / Detalle de Entrenamiento e Incluidos</label>
+                    <textarea id="plan-description" class="form-control" rows="4" placeholder="Ej: Acceso libre a m├íquinas, seguimiento de rutinas de pecho/espalda/piernas y asesoramiento..."></textarea>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-plan')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin + '/api';
+
+        // Global User Accounts Registry Persistence
+        let usersRegistry = JSON.parse(localStorage.getItem('fitmetrics_users_registry')) || [
+            { id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com', password_hash: 'admin123' }
+        ];
+
+        let currentUser = JSON.parse(localStorage.getItem('fitmetrics_user')) || null;
+        let dbState = { plans: [], members: [], payments: [], expenses: [], access_logs: [] };
+
+        function getStorageKey() {
+            if (currentUser && currentUser.id) {
+                return 'fitmetrics_db_' + currentUser.id;
+            }
+            return 'fitmetrics_db_default';
+        }
+
+        function loadUserDatabase() {
+            const key = getStorageKey();
+            let stored = localStorage.getItem(key);
+            if (!stored) {
+                stored = localStorage.getItem('fitmetrics_db_master') || localStorage.getItem('fitmetrics_db');
+            }
+
+            if (stored) {
+                try {
+                    dbState = JSON.parse(stored);
+                } catch(e) {
+                    console.error('Error loading dbState:', e);
+                }
+            }
+
+            if (!dbState || typeof dbState !== 'object') {
+                dbState = {};
+            }
+
+            if (!Array.isArray(dbState.members)) dbState.members = [];
+            if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
+                dbState.plans = [
+                    { id: 'p_101', name: 'Pase Libre Musculaci├│n', workout_type: 'Musculaci├│n & M├íquinas', price: 28000, days: 30, description: 'Acceso ilimitado a sal├│n de musculaci├│n, peso libre y cardio.' },
+                    { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por profesores, alta intensidad y acondicionamiento.' }
+                ];
+            }
+            // Ensure all plans have workout_type property
+            dbState.plans.forEach(p => {
+                if (!p.workout_type) p.workout_type = 'Entrenamiento General';
+            });
+            if (!Array.isArray(dbState.payments)) dbState.payments = [];
+            if (!Array.isArray(dbState.expenses)) dbState.expenses = [];
+            if (!Array.isArray(dbState.access_logs)) dbState.access_logs = [];
+        }
+
+        function saveState() {
+            const key = getStorageKey();
+            const dataStr = JSON.stringify(dbState);
+            try {
+                localStorage.setItem(key, dataStr);
+                localStorage.setItem('fitmetrics_db_master', dataStr);
+                localStorage.setItem('fitmetrics_db', dataStr);
+                localStorage.setItem('fitmetrics_db_default', dataStr);
+                if (currentUser && currentUser.id) {
+                    localStorage.setItem('fitmetrics_db_' + currentUser.id, dataStr);
+                }
+            } catch(e) {
+                console.error('Error saving state:', e);
+            }
+            renderAll();
+        }
+
+        async function resetDatabaseToZero() {
+            if (confirm('ΓÜá∩╕Å ┬┐Est├ís seguro de vaciar tu base de datos?\n\nEsto borrar├í ├║nicamente tus socios, pagos, gastos e historial sin afectar a otros usuarios.')) {
+                dbState.members = [];
+                dbState.payments = [];
+                dbState.expenses = [];
+                dbState.access_logs = [];
+                saveState();
+                alert('┬íTus datos fueron vaciados con ├⌐xito!');
+                renderAll();
+            }
+        }
+
+        /* Authentication System Functions */
+        function checkAuthSession() {
+            const portal = document.getElementById('auth-portal');
+            if (!currentUser) {
+                portal.style.display = 'flex';
+            } else {
+                portal.style.display = 'none';
+                document.getElementById('user-display-name').innerText = currentUser.username;
+                document.getElementById('user-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
+                loadUserDatabase();
+            }
+        }
+
+        let currentTab = 'dashboard';
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const titles = {
+                'dashboard': 'Dashboard General',
+                'access': 'Control de Acceso / Molinete',
+                'members': 'Gesti├│n de Socios',
+                'birthdays': 'Calendario de Cumplea├▒os ≡ƒÄé',
+                'plans': 'Planes y Membres├¡as ≡ƒôï',
+                'payments': 'Cobranzas e Ingresos',
+                'expenses': 'Control de Gastos (Fijos y Variables)'
+            };
+
+            const titleEl = document.getElementById('topbar-title');
+            if (titleEl && titles[tabId]) {
+                titleEl.innerText = titles[tabId];
+            }
+
+            const navItems = document.querySelectorAll('.nav-menu .nav-item');
+            navItems.forEach(item => {
+                const clickAttr = item.getAttribute('onclick') || '';
+                if (clickAttr.includes(`'${tabId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            const panels = document.querySelectorAll('.view-panel');
+            panels.forEach(panel => {
+                if (panel.id === `view-${tabId}`) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+
+            renderAll();
+        }
+
+        async function sendRealEmailCode(recipientEmail, code, subject, bodyMessage) {
+            try {
+                await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: 'e4635a96-6e42-4f38-95ef-f89a930fb872',
+                        email: recipientEmail,
+                        subject: subject,
+                        message: `${bodyMessage}\n\nTu C├│digo de Seguridad de 6 d├¡gitos es: ${code}\n\nEste c├│digo es ├║nico para verificar tu cuenta en FitMetrics.`
+                    })
+                });
+            } catch(e) {}
+
+            try {
+                await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipientEmail)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: subject,
+                        message: `${bodyMessage}\n\nTu C├│digo de Seguridad FitMetrics es: ${code}`
+                    })
+                });
+            } catch(e) {}
+        }
+
+        let pendingRegistration = null;
+        let recoveringData = null;
+
+        function showEmailSentAlert(recipientEmail) {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (!simBox) return;
+            simBox.style.display = 'block';
+            simBox.innerHTML = `
+                <div class="email-sim-box">
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem;">
+                        <i class="fa-solid fa-paper-plane" style="color:var(--primary); font-size:1.1rem;"></i>
+                        <span style="font-weight:700; color:#fff; font-size:0.9rem;">┬íC├│digo enviado por Correo Electr├│nico!</span>
+                    </div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+                        Enviamos un c├│digo de 6 d├¡gitos a: <strong style="color:var(--primary);">${recipientEmail}</strong>.<br>
+                        Por favor revisa tu <strong>Bandeja de Entrada</strong> o carpeta de <strong>Spam / Correo no deseado</strong> para obtener tu c├│digo.
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideSimulatedEmailNotification() {
+            const simBox = document.getElementById('auth-email-sim-container');
+            if (simBox) simBox.style.display = 'none';
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register' || tab === 'register-verify');
+            document.getElementById('tab-recover').classList.toggle('active', tab === 'recover');
+
+            document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('form-register-verify').style.display = tab === 'register-verify' ? 'block' : 'none';
+            document.getElementById('form-recover').style.display = tab === 'recover' ? 'block' : 'none';
+            
+            if (tab === 'recover') {
+                document.getElementById('recover-step-1').style.display = 'block';
+                document.getElementById('recover-step-2').style.display = 'none';
+                document.getElementById('auth-recover-input').value = '';
+            }
+
+            if (tab !== 'register-verify' && tab !== 'recover') {
+                hideSimulatedEmailNotification();
+            }
+
+            hideAuthMessages();
+        }
+
+        function hideAuthMessages() {
+            document.getElementById('auth-error-msg').style.display = 'none';
+            document.getElementById('auth-success-msg').style.display = 'none';
+        }
+
+        function showAuthError(msg) {
+            hideAuthMessages();
+            const errEl = document.getElementById('auth-error-msg');
+            errEl.innerText = msg;
+            errEl.style.display = 'block';
+        }
+
+        function showAuthSuccess(msg) {
+            hideAuthMessages();
+            const succEl = document.getElementById('auth-success-msg');
+            succEl.innerText = msg;
+            succEl.style.display = 'block';
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+            const inputVal = document.getElementById('auth-login-username').value.trim().toLowerCase();
+            const pw = document.getElementById('auth-login-password').value.trim();
+
+            if (!inputVal || !pw) {
+                showAuthError('Por favor completa todos los campos.');
+                return;
+            }
+
+            const user = usersRegistry.find(u => 
+                (u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)) && 
+                u.password_hash === pw
+            );
+
+            if (user) {
+                setSession(user);
+            } else if (inputVal === 'admin' && pw === 'admin123') {
+                setSession({ id: 'u_admin', username: 'admin', email: 'admin@fitmetrics.com' });
+            } else {
+                showAuthError('Usuario, email o contrase├▒a incorrectos.');
+            }
+        }
+
+        async function handleRegisterStep1(e) {
+            e.preventDefault();
+            hideAuthMessages();
+            const un = document.getElementById('auth-reg-username').value.trim();
+            const email = document.getElementById('auth-reg-email').value.trim().toLowerCase();
+            const pw = document.getElementById('auth-reg-password').value.trim();
+            const confirmPw = document.getElementById('auth-reg-confirm').value.trim();
+
+            if (!un || !email || !pw || !confirmPw) {
+                showAuthError('Por favor completa todos los campos.');
+                return;
+            }
+
+            if (pw !== confirmPw) {
+                showAuthError('Las contrase├▒as no coinciden.');
+                return;
+            }
+
+            if (pw.length < 4) {
+                showAuthError('La contrase├▒a debe tener al menos 4 caracteres.');
+                return;
+            }
+
+            // Uniqueness validation for username
+            if (usersRegistry.some(u => u.username.toLowerCase() === un.toLowerCase())) {
+                showAuthError(`ΓÜá∩╕Å El nombre de usuario "${un}" ya se encuentra registrado. Elige otro nombre distinto.`);
+                return;
+            }
+
+            // Uniqueness validation for email
+            if (usersRegistry.some(u => u.email && u.email.toLowerCase() === email)) {
+                showAuthError(`ΓÜá∩╕Å El correo electr├│nico "${email}" ya est├í asociado a otra cuenta.`);
+                return;
+            }
+
+            // Generate random 6-digit verification code
+            const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+            pendingRegistration = {
+                id: 'u_' + Math.random().toString(36).substr(2,6),
+                username: un,
+                email: email,
+                password_hash: pw,
+                code: verifyCode
+            };
+
+            // Dispatch real email via web service
+            sendRealEmailCode(email, verifyCode, 'C├│digo de Verificaci├│n de Cuenta - FitMetrics', `┬íHola ${un}! Te enviamos el c├│digo de 6 d├¡gitos para verificar tu cuenta.`);
+
+            switchAuthTab('register-verify');
+            showEmailSentAlert(email);
+            showAuthSuccess(`┬íEnviamos el c├│digo a tu correo ${email}! Rev├¡salo e ingr├⌐salo a continuaci├│n.`);
+        }
+
+        function resendRegistrationCode() {
+            if (!pendingRegistration) return;
+            const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+            pendingRegistration.code = newCode;
+            sendRealEmailCode(pendingRegistration.email, newCode, 'Nuevo C├│digo de Verificaci├│n - FitMetrics', `Hola, aqu├¡ tienes tu nuevo c├│digo de verificaci├│n de 6 d├¡gitos.`);
+            showEmailSentAlert(pendingRegistration.email);
+            showAuthSuccess('Se ha reenviado un nuevo c├│digo a tu correo electr├│nico.');
+        }
+
+        function handleRegisterVerifySubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+
+            if (!pendingRegistration) {
+                showAuthError('No hay ning├║n registro pendiente. Vuelve a intentar.');
+                switchAuthTab('register');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-reg-code-input').value.trim();
+            if (enteredCode !== pendingRegistration.code) {
+                showAuthError('Γ¥î El c├│digo de 6 d├¡gitos ingresado es incorrecto. Verifica el correo electr├│nico que te enviamos.');
+                return;
+            }
+
+            const newUser = {
+                id: pendingRegistration.id,
+                username: pendingRegistration.username,
+                email: pendingRegistration.email,
+                password_hash: pendingRegistration.password_hash,
+                is_verified: true
+            };
+
+            usersRegistry.push(newUser);
+            localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+            pendingRegistration = null;
+
+            hideSimulatedEmailNotification();
+            showAuthSuccess('┬íCorreo verificado con ├⌐xito! Cuenta activada de por vida. Entrando...');
+            setTimeout(() => {
+                setSession(newUser);
+            }, 800);
+        }
+
+        async function verifyAccountForRecovery() {
+            hideAuthMessages();
+            const inputVal = document.getElementById('auth-recover-input').value.trim().toLowerCase();
+            if (!inputVal) {
+                showAuthError('Por favor ingresa tu usuario o correo electr├│nico.');
+                return;
+            }
+
+            const found = usersRegistry.find(u => 
+                u.username.toLowerCase() === inputVal || (u.email && u.email.toLowerCase() === inputVal)
+            );
+
+            if (!found) {
+                showAuthError('No se encontr├│ ninguna cuenta registrada con ese usuario o correo electr├│nico.');
+                return;
+            }
+
+            const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+            recoveringData = { user: found, code: recoveryCode };
+
+            // Dispatch real email via web service
+            sendRealEmailCode(found.email || inputVal, recoveryCode, 'Recuperaci├│n de Contrase├▒a - FitMetrics', `Hola ${found.username}, te enviamos el c├│digo para restablecer tu contrase├▒a.`);
+
+            document.getElementById('recover-step-1').style.display = 'none';
+            document.getElementById('recover-step-2').style.display = 'block';
+            document.getElementById('recover-account-info').innerHTML = `
+                <strong><i class="fa-solid fa-user-check" style="color:var(--success);"></i> Cuenta encontrada:</strong><br>
+                Usuario: <strong>${found.username}</strong><br>
+                Email: <strong>${found.email || 'Registrado'}</strong>
+            `;
+
+            showEmailSentAlert(found.email || found.username);
+            showAuthSuccess('Enviamos el c├│digo de 6 d├¡gitos a tu correo electr├│nico.');
+        }
+
+        function handleRecoverSubmit(e) {
+            e.preventDefault();
+            hideAuthMessages();
+
+            if (!recoveringData) {
+                showAuthError('Error de recuperaci├│n. Intenta nuevamente.');
+                return;
+            }
+
+            const enteredCode = document.getElementById('auth-recover-code-input').value.trim();
+            const newPw = document.getElementById('auth-recover-new-password').value.trim();
+            const confirmPw = document.getElementById('auth-recover-confirm-password').value.trim();
+
+            if (!enteredCode || !newPw || !confirmPw) {
+                showAuthError('Por favor completa todos los campos.');
+                return;
+            }
+
+            if (enteredCode !== recoveringData.code) {
+                showAuthError('Γ¥î El c├│digo de recuperaci├│n de 6 d├¡gitos es incorrecto.');
+                return;
+            }
+
+            if (newPw !== confirmPw) {
+                showAuthError('Las contrase├▒as no coinciden.');
+                return;
+            }
+
+            if (newPw.length < 4) {
+                showAuthError('La contrase├▒a debe tener al menos 4 caracteres.');
+                return;
+            }
+
+            // Update user password in registry
+            const uIdx = usersRegistry.findIndex(u => u.id === recoveringData.user.id);
+            if (uIdx !== -1) {
+                usersRegistry[uIdx].password_hash = newPw;
+                localStorage.setItem('fitmetrics_users_registry', JSON.stringify(usersRegistry));
+            }
+
+            hideSimulatedEmailNotification();
+            showAuthSuccess('┬íContrase├▒a restablecida con ├⌐xito! Redirigiendo...');
+            setTimeout(() => {
+                document.getElementById('auth-login-username').value = recoveringData.user.username;
+                document.getElementById('auth-login-password').value = newPw;
+                recoveringData = null;
+                switchAuthTab('login');
+            }, 1200);
+        }
+
+        function setSession(user) {
+            currentUser = user;
+            localStorage.setItem('fitmetrics_user', JSON.stringify(currentUser));
+            checkAuthSession();
+            renderAll();
+        }
+
+        function logoutUser() {
+            if (confirm('┬┐Est├ís seguro de que deseas cerrar sesi├│n?')) {
+                currentUser = null;
+                localStorage.removeItem('fitmetrics_user');
+                localStorage.removeItem('tob_analystic_user');
+                checkAuthSession();
+            }
+        }
+
+        /* WhatsApp & Birthday Helpers */
+        function getWhatsAppUrl(phone, memberName) {
+            if (!phone) return '#';
+            let clean = phone.replace(/\D/g, '');
+            if (!clean) return '#';
+            if (clean.length === 10) clean = '549' + clean;
+            const msg = encodeURIComponent(`┬íHola ${memberName}! Te contactamos desde FitMetrics ≡ƒÅï∩╕ÅΓ£¿`);
+            return `https://wa.me/${clean}?text=${msg}`;
+        }
+
+        function getBirthdayWhatsAppUrl(phone, memberName) {
+            if (!phone) return '#';
+            let clean = phone.replace(/\D/g, '');
+            if (!clean) return '#';
+            if (clean.length === 10) clean = '549' + clean;
+            const msg = encodeURIComponent(`┬íHola ${memberName}! ≡ƒÄë≡ƒÄé ┬íTe deseamos un muy feliz cumplea├▒os de parte de todo el equipo de FitMetrics! ≡ƒÅï∩╕Å≡ƒÆ¬ ┬íA festejar entrenando!`);
+            return `https://wa.me/${clean}?text=${msg}`;
+        }
+
+        function isBirthdayToday(birthdate) {
+            if (!birthdate) return false;
+            const today = new Date();
+            const parts = birthdate.split('-').map(Number);
+            if (parts.length < 3) return false;
+            const [year, month, day] = parts;
+            return (today.getMonth() + 1 === month) && (today.getDate() === day);
+        }
+
+        function formatMoney(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('es-AR');
+        }
+
+        function calculateAge(birthdate) {
+            if (!birthdate) return '';
+            const today = new Date();
+            const parts = birthdate.split('-').map(Number);
+            if (parts.length < 3) return '';
+            const [year, month, day] = parts;
+            if (!year || year < 1900) return '';
+            let age = today.getFullYear() - year;
+            const m = today.getMonth() + 1 - month;
+            if (m < 0 || (m === 0 && today.getDate() < day)) age--;
+            return age > 0 ? `${age} a├▒os` : '';
+        }
+
+        function formatBirthdate(birthdate) {
+            if (!birthdate) return '-';
+            const parts = birthdate.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return birthdate;
+        }
+
+        function renderAll() {
+            // Stats
+            const total = dbState.members.length;
+            const active = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'ACTIVE').length;
+            const warning = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'WARNING').length;
+            const expired = dbState.members.filter(m => getMemberStatus(m.expire_date) === 'EXPIRED').length;
+
+            const todayBirthdays = dbState.members.filter(m => isBirthdayToday(m.birthdate));
+
+            // Calculate Monthly Financial Metrics (Auto-updates every month)
+            const now = new Date();
+            const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+            const income = dbState.payments
+                .filter(p => (p.date || '').startsWith(curMonthStr))
+                .reduce((acc, p) => acc + (p.amount || 0), 0);
+
+            // Fixed Expenses apply every month automatically, Variable Expenses apply to specific month date
+            const expensesPaid = dbState.expenses
+                .filter(e => e.status === 'PAGADO' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
+                .reduce((acc, e) => acc + (e.amount || 0), 0);
+
+            const expensesPend = dbState.expenses
+                .filter(e => e.status === 'PENDIENTE' && (e.type === 'FIJO' || (e.date || '').startsWith(curMonthStr)))
+                .reduce((acc, e) => acc + (e.amount || 0), 0);
+
+            document.getElementById('kpi-total-members').innerText = total;
+            document.getElementById('kpi-active-members').innerText = active;
+            document.getElementById('kpi-expiring-members').innerText = warning;
+            document.getElementById('kpi-expired-members').innerText = expired;
+            document.getElementById('kpi-today-birthdays').innerText = todayBirthdays.length;
+            document.getElementById('kpi-income').innerText = `$${formatMoney(income)}`;
+            document.getElementById('kpi-expenses').innerText = `$${formatMoney(expensesPaid)}`;
+            document.getElementById('kpi-pending-expenses').innerText = `$${formatMoney(expensesPend)}`;
+
+            // Render Dashboard Birthday Banner Alert
+            const bannerContainer = document.getElementById('dashboard-birthday-banner');
+            if (todayBirthdays.length > 0) {
+                bannerContainer.innerHTML = todayBirthdays.map(m => {
+                    const waUrl = getBirthdayWhatsAppUrl(m.phone, m.name);
+                    const ageStr = calculateAge(m.birthdate);
+                    return `
+                        <div class="birthday-banner">
+                            <div style="display:flex; align-items:center; gap:0.85rem;">
+                                <div style="font-size:2.2rem;">≡ƒÄé</div>
+                                <div>
+                                    <div style="font-weight:800; font-size:1.1rem; color:#fff;">┬íHoy es el cumplea├▒os de ${m.name}! ≡ƒÄë</div>
+                                    <div style="font-size:0.88rem; color:#fbcfe8;">${ageStr ? `Cumple ${ageStr} ┬╖ ` : ''}DNI: ${m.dni}</div>
+                                </div>
+                            </div>
+                            ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff; font-size:0.92rem; padding:0.5rem 1rem;"><i class="fa-brands fa-whatsapp"></i> Saludar por WhatsApp</a>` : `<span style="font-size:0.85rem; color:var(--text-muted);">Sin WhatsApp</span>`}
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                bannerContainer.innerHTML = '';
+            }
+
+            // Chart
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'Gastos Pagados', 'Gastos Pendientes'],
+                    datasets: [{ data: [income, expensesPaid, expensesPend], backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b'], borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Recent Logs
+            document.getElementById('dashboard-recent-logs').innerHTML = dbState.access_logs.slice(-5).reverse().map(l => `
+                <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-glass);">
+                    <div><strong>${l.member_name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${l.time}</span></div>
+                    <span class="status-badge ${l.status}" style="font-size:0.65rem; padding:0.2rem 0.5rem;">${l.status}</span>
+                </div>
+            `).join('') || '<p style="color:var(--text-muted);">Sin accesos registrados.</p>';
+
+            // Members Table
+            const query = document.getElementById('search-members-input')?.value.toLowerCase() || '';
+            const filteredMembers = dbState.members.filter(m => {
+                const status = getMemberStatus(m.expire_date);
+                const isBday = isBirthdayToday(m.birthdate);
+                let matchFilter = true;
+                if (currentMemberFilter === 'BIRTHDAY') {
+                    matchFilter = isBday;
+                } else if (currentMemberFilter !== 'ALL') {
+                    matchFilter = status === currentMemberFilter;
+                }
+                const matchSearch = m.name.toLowerCase().includes(query) || m.dni.includes(query);
+                return matchFilter && matchSearch;
+            });
+
+            document.getElementById('members-table-body').innerHTML = filteredMembers.map(m => {
+                const plan = dbState.plans.find(p => p.id === m.plan_id);
+                const workoutPlan = (dbState.workout_plans || []).find(wp => wp.id === m.workout_plan_id);
+                const status = getMemberStatus(m.expire_date);
+                const isBday = isBirthdayToday(m.birthdate);
+                const waUrl = getWhatsAppUrl(m.phone, m.name);
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${m.name}</strong> ${isBday ? `<span title="┬íHoy cumple a├▒os!" style="cursor:pointer; font-size:0.9rem; background:rgba(236,72,153,0.2); border:1px solid #ec4899; padding:0.1rem 0.4rem; border-radius:12px; color:#ec4899; font-weight:700;">≡ƒÄé ┬íCUMPLE HOY!</span>` : ''}
+                            <br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span>
+                        </td>
+                        <td>
+                            ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn-wa-link" title="Abrir chat de WhatsApp"><i class="fa-brands fa-whatsapp"></i> ${m.phone}</a>` : '-'}
+                        </td>
+                        <td>${formatBirthdate(m.birthdate)} ${calculateAge(m.birthdate) ? `<span style="font-size:0.75rem; color:var(--text-muted);">(${calculateAge(m.birthdate)})</span>` : ''}</td>
+                        <td>
+                            <span style="font-size:0.8rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${plan ? plan.name : 'Sin Plan'}</span>
+                            ${workoutPlan ? `<br><span style="font-size:0.72rem; color:var(--primary); font-weight:700;"><i class="fa-solid fa-dumbbell"></i> ${workoutPlan.name}</span>` : ''}
+                        </td>
+                        <td>${m.start_date}</td>
+                        <td><strong>${m.expire_date}</strong></td>
+                        <td><span class="status-badge ${status}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${status}</span></td>
+                        <td>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRoutineModal('${m.id}')" title="Ver / Enviar Rutina de Entrenamiento"><i class="fa-solid fa-dumbbell"></i> Rutina</button>
+                                ${m.phone ? `<a href="${waUrl}" target="_blank" class="btn btn-wa-icon" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openRenewModal('${m.id}')" title="Renovar Membres├¡a"><i class="fa-solid fa-rotate-right"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openMemberModal('${m.id}')" title="Editar Socio"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteMember('${m.id}')" title="Eliminar Socio"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No se encontraron socios en esta vista.</td></tr>';
+
+            // Birthday Calendar Table View
+            const todaySec = document.getElementById('birthday-today-section');
+            if (todayBirthdays.length > 0) {
+                todaySec.innerHTML = `
+                    <div style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.4); border-radius:14px; padding:1rem 1.25rem;">
+                        <h4 style="color:#ec4899; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;"><i class="fa-solid fa-cake-candles"></i> ┬íCumplea├▒os de Hoy!</h4>
+                        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                            ${todayBirthdays.map(m => `
+                                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); padding:0.75rem 1rem; border-radius:10px;">
+                                    <div>
+                                        <strong>${m.name}</strong> (DNI: ${m.dni}) ${calculateAge(m.birthdate) ? `ΓÇö ${calculateAge(m.birthdate)}` : ''}
+                                    </div>
+                                    ${m.phone ? `<a href="${getBirthdayWhatsAppUrl(m.phone, m.name)}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff;"><i class="fa-brands fa-whatsapp"></i> Saludar por WhatsApp</a>` : '<span style="color:var(--text-muted); font-size:0.8rem;">Sin WhatsApp</span>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                todaySec.innerHTML = `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-glass); border-radius:12px; padding:0.85rem 1.2rem; color:var(--text-muted); font-size:0.9rem;"><i class="fa-solid fa-info-circle"></i> Hoy no hay cumplea├▒os registrados entre tus socios.</div>`;
+            }
+
+            const membersWithBirthdays = [...dbState.members].sort((a,b) => {
+                const dateA = a.birthdate ? a.birthdate.slice(5) : '99-99';
+                const dateB = b.birthdate ? b.birthdate.slice(5) : '99-99';
+                return dateA.localeCompare(dateB);
+            });
+
+            document.getElementById('birthdays-table-body').innerHTML = membersWithBirthdays.map(m => {
+                const isBday = isBirthdayToday(m.birthdate);
+                const waGreetingUrl = getBirthdayWhatsAppUrl(m.phone, m.name);
+                const waChatUrl = getWhatsAppUrl(m.phone, m.name);
+                return `
+                    <tr style="${isBday ? 'background:rgba(236,72,153,0.1);' : ''}">
+                        <td><strong>${formatBirthdate(m.birthdate)}</strong></td>
+                        <td><strong>${m.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">DNI: ${m.dni}</span></td>
+                        <td>${calculateAge(m.birthdate) || '-'}</td>
+                        <td>${m.phone ? `<a href="${waChatUrl}" target="_blank" class="btn-wa-link"><i class="fa-brands fa-whatsapp"></i> ${m.phone}</a>` : '-'}</td>
+                        <td>${isBday ? `<span style="background:rgba(236,72,153,0.25); color:#ec4899; border:1px solid #ec4899; padding:0.2rem 0.6rem; border-radius:50px; font-weight:800; font-size:0.75rem;">≡ƒÄé ┬íCUMPLE HOY!</span>` : `<span style="color:var(--text-muted); font-size:0.8rem;">Registrado</span>`}</td>
+                        <td>
+                            ${m.phone ? `<a href="${waGreetingUrl}" target="_blank" class="btn btn-wa-icon"><i class="fa-brands fa-whatsapp"></i> Saludar</a>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay fechas de nacimiento registradas. Completa la fecha de nacimiento al editar o crear socios.</td></tr>';
+
+            // Plans
+            document.getElementById('plans-container').innerHTML = dbState.plans.map(p => `
+                <div class="plan-card">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.6rem;">
+                            <div style="font-weight:800; font-size:1.2rem; color:#fff; line-height:1.3;">${p.name}</div>
+                            <div style="display:flex; gap:0.4rem; flex-shrink:0;">
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem;" onclick="openPlanModal('${p.id}')" title="Editar Plan"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.8rem; color:var(--danger);" onclick="deletePlan('${p.id}')" title="Eliminar Plan"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div style="font-size:0.88rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">
+                            ≡ƒÅï∩╕ÅΓÇìΓÖé∩╕Å ${p.workout_type || 'Entrenamiento General'}
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space:pre-wrap;">${p.description || 'Sin descripci├│n'}</div>
+                    </div>
+                    <div class="plan-price-tag" style="margin-top:1rem;">
+                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Cuota Mensual</span>
+                        <div style="font-size:1.55rem; font-weight:800; color:var(--primary);">$${formatMoney(p.price)} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">/ ${p.days || 30}d</span></div>
+                    </div>
+                </div>
+            `).join('') || '<div style="color:var(--text-muted); padding:2rem; text-align:center;">No hay planes creados. ┬íHaz clic en "Crear Nuevo Plan" para a├▒adir uno!</div>';
+
+            // Payments (Ingresos)
+            document.getElementById('payments-table-body').innerHTML = dbState.payments.map(p => `
+                <tr>
+                    <td>${p.date}</td>
+                    <td><strong>${p.member_name}</strong></td>
+                    <td>${p.plan_name}</td>
+                    <td><strong style="color:var(--success);">$${formatMoney(p.amount)}</strong></td>
+                    <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${p.method}</span></td>
+                    <td style="color:var(--text-muted); font-size:0.8rem;">${p.note || '-'}</td>
+                    <td>
+                        <div style="display:flex; gap:0.3rem;">
+                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openPaymentModal('${p.id}')" title="Editar Ingreso"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deletePayment('${p.id}')" title="Eliminar Ingreso"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay ingresos registrados este mes. ┬íHaz clic en "Nuevo Ingreso" para agregar uno!</td></tr>';
+
+            // Expenses (Filtered by ALL, FIJO, or VARIABLE)
+            const filteredExpenses = dbState.expenses.filter(e => {
+                const expType = e.type || 'VARIABLE';
+                if (currentExpenseFilter === 'ALL') return true;
+                return expType === currentExpenseFilter;
+            });
+
+            document.getElementById('expenses-table-body').innerHTML = filteredExpenses.map(e => {
+                const isFixed = e.type === 'FIJO';
+                const typeBadge = isFixed 
+                    ? `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(6,182,212,0.15); color:var(--primary); border:1px solid rgba(6,182,212,0.3); border-radius:4px; font-weight:700;"><i class="fa-solid fa-repeat"></i> FIJO</span>`
+                    : `<span style="font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); color:var(--text-muted); border-radius:4px;"><i class="fa-solid fa-bolt"></i> VARIABLE</span>`;
+
+                return `
+                    <tr>
+                        <td>${e.date}</td>
+                        <td><strong>${e.title}</strong></td>
+                        <td>${typeBadge}</td>
+                        <td><span style="font-size:0.75rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.08); border-radius:4px;">${e.category}</span></td>
+                        <td><strong style="color:var(--danger);">$${formatMoney(e.amount)}</strong></td>
+                        <td><span class="status-badge ${e.status==='PAGADO'?'ACTIVE':'WARNING'}" style="font-size:0.7rem; padding:0.2rem 0.5rem;">${e.status}</span></td>
+                        <td>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="toggleExpense('${e.id}')" title="Cambiar Estado">${e.status==='PAGADO'?'Cambiar a PENDIENTE':'Cambiar a PAGADO'}</button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem;" onclick="openExpenseModal('${e.id}')" title="Editar Gasto"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-secondary" style="padding:0.3rem 0.5rem; font-size:0.75rem; color:var(--danger);" onclick="deleteExpense('${e.id}')" title="Eliminar Gasto"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No hay gastos registrados en esta categor├¡a. ┬íHaz clic en "Nuevo Gasto" para agregar uno!</td></tr>';
+
+            // Populate Plan Dropdowns
+            populatePlanSelects();
+        }
+
+        function populatePlanSelects() {
+            const planSelect = document.getElementById('m-plan');
+            const renewSelect = document.getElementById('renew-plan');
+
+            if (planSelect && renewSelect) {
+                if (!Array.isArray(dbState.plans) || dbState.plans.length === 0) {
+                    dbState.plans = [
+                        { id: 'p_101', name: 'Pase Libre Musculaci├│n', workout_type: 'Musculaci├│n & M├íquinas', price: 28000, days: 30, description: 'Acceso ilimitado a musculaci├│n' },
+                        { id: 'p_102', name: 'Crossfit & Funcional', workout_type: 'Crossfit / Clases Guiadas', price: 35000, days: 30, description: 'Clases guiadas por coach' }
+                    ];
+                }
+
+                const planOpts = dbState.plans.map(p => 
+                    `<option value="${p.id}" data-days="${p.days}" data-price="${p.price}">${p.name} (${p.workout_type || 'General'}) ΓÇö $${formatMoney(p.price)} / ${p.days}d</option>`
+                ).join('');
+
+                planSelect.innerHTML = planOpts;
+                renewSelect.innerHTML = planOpts;
+            }
+        }
+
+        /* Check Access */
+        function checkAccess() {
+            const input = document.getElementById('access-input');
+            const q = input.value.trim().toLowerCase();
+            if (!q) return;
+
+            const m = dbState.members.find(x => x.dni.toLowerCase() === q || x.name.toLowerCase().includes(q));
+            const card = document.getElementById('access-card');
+            const icon = document.getElementById('turnstile-gate-icon');
+            const badge = document.getElementById('access-badge');
+            const detail = document.getElementById('access-detail');
+
+            if (m) {
+                const status = getMemberStatus(m.expire_date);
+                const plan = dbState.plans.find(p => p.id === m.plan_id);
+                const isBday = isBirthdayToday(m.birthdate);
+
+                card.className = `access-display-card ${status}`;
+                badge.className = `status-badge ${status}`;
+                badge.innerText = status === 'ACTIVE' ? 'ACCESO PERMITIDO' : (status === 'WARNING' ? 'POR VENCER' : 'ACCESO DENEGADO');
+                icon.innerHTML = status === 'EXPIRED' ? '<i class="fa-solid fa-lock" style="color:var(--danger);"></i>' : '<i class="fa-solid fa-lock-open" style="color:var(--success);"></i>';
+                
+                let bdayNotice = '';
+                if (isBday) {
+                    bdayNotice = `
+                        <div style="margin-top:0.8rem; background:rgba(236,72,153,0.2); border:1px solid #ec4899; color:#f472b6; padding:0.6rem 1rem; border-radius:12px; font-weight:700;">
+                            ≡ƒÄé ┬íHOY ES SU CUMPLEA├æOS! ≡ƒÄë<br>
+                            <span style="font-size:0.85rem; font-weight:400; color:#fff;">┬íDile feliz cumplea├▒os al ingresar!</span>
+                            ${m.phone ? `<br><a href="${getBirthdayWhatsAppUrl(m.phone, m.name)}" target="_blank" class="btn btn-wa-icon" style="margin-top:0.5rem; background:#25d366; color:#fff;"><i class="fa-brands fa-whatsapp"></i> Enviar Saludo por WhatsApp</a>` : ''}
+                        </div>
+                    `;
+                }
+
+                detail.innerHTML = `<strong>${m.name}</strong> (DNI: ${m.dni})<br>Plan: ${plan ? plan.name : 'N/A'}<br>Vencimiento: ${m.expire_date}${bdayNotice}`;
+                playBeep(status);
+
+                dbState.access_logs.push({ member_name: m.name, dni: m.dni, status: status, time: new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}) });
+            } else {
+                card.className = 'access-display-card NOT_FOUND';
+                badge.className = 'status-badge NOT_FOUND';
+                badge.innerText = 'SOCIO NO ENCONTRADO';
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#64748b;"></i>';
+                detail.innerHTML = `No existe socio con DNI: ${q}`;
+                playBeep('NOT_FOUND');
+            }
+            input.value = '';
+            saveState();
+        }
+
+        function filterMembers(st, btn) {
+            currentMemberFilter = st;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        function openMemberModal(memberId) {
+            populatePlanSelects();
+
+            if (memberId) {
+                const m = dbState.members.find(x => x.id === memberId);
+                if (!m) return;
+                document.getElementById('member-modal-title').innerText = 'Editar Socio';
+                document.getElementById('m-id').value = m.id;
+                document.getElementById('m-name').value = m.name;
+                document.getElementById('m-dni').value = m.dni;
+                document.getElementById('m-phone').value = m.phone || '';
+                document.getElementById('m-birthdate').value = m.birthdate || '';
+                if (m.plan_id) {
+                    document.getElementById('m-plan').value = m.plan_id;
+                }
+                document.getElementById('m-start').value = m.start_date;
+                document.getElementById('m-expire').value = m.expire_date;
+            } else {
+                document.getElementById('member-modal-title').innerText = 'Nuevo Socio';
+                document.getElementById('m-id').value = '';
+                document.getElementById('m-name').value = '';
+                document.getElementById('m-dni').value = '';
+                document.getElementById('m-phone').value = '';
+                document.getElementById('m-birthdate').value = '';
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById('m-start').value = todayStr;
+                if (document.getElementById('m-plan').options.length > 0) {
+                    document.getElementById('m-plan').selectedIndex = 0;
+                }
+                calculateExpireDate();
+            }
+            openModal('modal-member');
+        }
+
+        function calculateExpireDate() {
+            const startInput = document.getElementById('m-start');
+            const planSel = document.getElementById('m-plan');
+            if (!startInput || !planSel) return;
+            const start = startInput.value;
+            if (!start || !planSel.options || !planSel.options.length) return;
+
+            let selectedOpt = planSel.options[planSel.selectedIndex];
+            if (!selectedOpt && planSel.options.length > 0) {
+                selectedOpt = planSel.options[0];
+                planSel.selectedIndex = 0;
+            }
+            if (!selectedOpt) return;
+
+            const days = parseInt(selectedOpt.getAttribute('data-days')) || 30;
+            const d = new Date(start + 'T00:00:00');
+            d.setDate(d.getDate() + days);
+            document.getElementById('m-expire').value = d.toISOString().split('T')[0];
+        }
+
+        function saveMember(e) {
+            e.preventDefault();
+            const id = document.getElementById('m-id').value;
+            const name = document.getElementById('m-name').value.trim();
+            const dni = document.getElementById('m-dni').value.trim();
+            const phone = document.getElementById('m-phone').value.trim();
+            const birthdate = document.getElementById('m-birthdate').value;
+            const plan_id = document.getElementById('m-plan').value;
+            const start_date = document.getElementById('m-start').value;
+            let expire_date = document.getElementById('m-expire').value;
+
+            if (!name || !dni || !plan_id) {
+                alert('Por favor completa el nombre, DNI y selecciona un plan de membres├¡a.');
+                return;
+            }
+
+            const selectedPlan = dbState.plans.find(p => p.id === plan_id);
+
+            // Guarantee expire_date is calculated if missing
+            if (!expire_date && start_date && selectedPlan) {
+                const days = selectedPlan.days || 30;
+                const d = new Date(start_date + 'T00:00:00');
+                d.setDate(d.getDate() + days);
+                expire_date = d.toISOString().split('T')[0];
+            }
+
+            if (id) {
+                // Editing existing member
+                const m = dbState.members.find(x => x.id === id);
+                if (m) {
+                    m.name = name;
+                    m.dni = dni;
+                    m.phone = phone;
+                    m.birthdate = birthdate;
+                    m.plan_id = plan_id;
+                    m.start_date = start_date;
+                    m.expire_date = expire_date;
+                }
+            } else {
+                // Registering NEW Member
+                const newMemberId = 'm_' + Math.random().toString(36).substr(2, 6);
+                const newMember = {
+                    id: newMemberId,
+                    name: name,
+                    dni: dni,
+                    phone: phone,
+                    birthdate: birthdate,
+                    plan_id: plan_id,
+                    start_date: start_date,
+                    expire_date: expire_date
+                };
+
+                dbState.members.unshift(newMember);
+
+                // AUTOMATICALLY REGISTER PAYMENT / INGRESO FOR THE ENROLLED MEMBER!
+                if (selectedPlan) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    dbState.payments.unshift({
+                        id: 'pay_' + Math.random().toString(36).substr(2, 6),
+                        member_id: newMemberId,
+                        member_name: name,
+                        plan_id: selectedPlan.id,
+                        plan_name: selectedPlan.name,
+                        amount: selectedPlan.price,
+                        method: 'Efectivo',
+                        date: todayStr,
+                        note: 'Alta e inscripci├│n de nuevo socio'
+                    });
+                }
+            }
+
+            closeModal('modal-member');
+            saveState();
+            switchTab('members');
+        }
+
+        /* Workout Plan Handlers */
+        function openWorkoutPlanModal(wpId) {
+            if (wpId) {
+                const wp = dbState.workout_plans.find(x => x.id === wpId);
+                if (!wp) return;
+                document.getElementById('workout-plan-modal-title').innerText = 'Editar Plan de Entrenamiento';
+                document.getElementById('wp-id').value = wp.id;
+                document.getElementById('wp-name').value = wp.name;
+                document.getElementById('wp-objective').value = wp.objective || '';
+                document.getElementById('wp-level').value = wp.level || 'Intermedio';
+                document.getElementById('wp-details').value = wp.details || '';
+            } else {
+                document.getElementById('workout-plan-modal-title').innerText = 'Crear Plan de Entrenamiento';
+                document.getElementById('wp-id').value = '';
+                document.getElementById('wp-name').value = '';
+                document.getElementById('wp-objective').value = '';
+                document.getElementById('wp-level').value = 'Intermedio';
+                document.getElementById('wp-details').value = '';
+            }
+            openModal('modal-workout-plan');
+        }
+
+        function saveWorkoutPlan(e) {
+            e.preventDefault();
+            const id = document.getElementById('wp-id').value;
+            const name = document.getElementById('wp-name').value.trim();
+            const objective = document.getElementById('wp-objective').value.trim();
+            const level = document.getElementById('wp-level').value;
+            const details = document.getElementById('wp-details').value.trim();
+
+            if (!name || !details) {
+                alert('Por favor completa el nombre y el detalle de la rutina de entrenamiento.');
+                return;
+            }
+
+            if (!Array.isArray(dbState.workout_plans)) dbState.workout_plans = [];
+
+            if (id) {
+                const wp = dbState.workout_plans.find(x => x.id === id);
+                if (wp) {
+                    wp.name = name;
+                    wp.objective = objective;
+                    wp.level = level;
+                    wp.details = details;
+                }
+            } else {
+                const newId = 'wp_' + Math.random().toString(36).substr(2, 6);
+                dbState.workout_plans.unshift({ id: newId, name, objective, level, details });
+            }
+
+            closeModal('modal-workout-plan');
+            saveState();
+            switchTab('workout_plans');
+        }
+
+        function deleteWorkoutPlan(wpId) {
+            if (!confirm('┬┐Est├ís seguro de eliminar este plan de entrenamiento?')) return;
+            dbState.workout_plans = dbState.workout_plans.filter(x => x.id !== wpId);
+            saveState();
+        }
+
+        function openRoutineModal(memberId) {
+            const m = dbState.members.find(x => x.id === memberId);
+            if (!m) return;
+            const wp = (dbState.workout_plans || []).find(x => x.id === m.workout_plan_id);
+
+            document.getElementById('vr-member-name').innerText = `Rutina de ${m.name}`;
+            document.getElementById('vr-plan-name').innerText = wp ? `≡ƒÅï∩╕ÅΓÇìΓÖé∩╕Å ${wp.name} (${wp.level || 'General'})` : 'Sin Plan de Entrenamiento Asignado';
+            document.getElementById('vr-details').innerText = wp ? wp.details : 'Este socio no tiene un plan de entrenamiento asignado actualmente. Edita el socio para asignarle una rutina.';
+
+            const waBtnContainer = document.getElementById('vr-wa-btn-container');
+            if (wp && m.phone) {
+                let cleanPhone = m.phone.replace(/\D/g, '');
+                if (cleanPhone.length === 10) cleanPhone = '549' + cleanPhone;
+                const msg = encodeURIComponent(`┬íHola ${m.name}! Te enviamos tu plan de entrenamiento de FitMetrics ≡ƒÅï∩╕ÅΓ£¿:\n\n*${wp.name}*\n\n${wp.details}`);
+                waBtnContainer.innerHTML = `<a href="https://wa.me/${cleanPhone}?text=${msg}" target="_blank" class="btn btn-wa-icon" style="background:#25d366; color:#fff; font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-brands fa-whatsapp"></i> Enviar Rutina por WhatsApp</a>`;
+            } else {
+                waBtnContainer.innerHTML = '';
+            }
+
+            openModal('modal-view-routine');
+        }
+
+        function deleteMember(id) {
+            if (!confirm('┬┐Est├ís seguro de eliminar este socio?')) return;
+            dbState.members = dbState.members.filter(m => m.id !== id);
+            saveState();
+        }
+
+        function openPaymentModal(paymentId) {
+            if (paymentId) {
+                const p = dbState.payments.find(x => x.id === paymentId);
+                if (!p) return;
+                document.getElementById('payment-modal-title').innerText = 'Editar Ingreso';
+                document.getElementById('pay-id').value = p.id;
+                document.getElementById('pay-member-name').value = p.member_name || '';
+                document.getElementById('pay-plan-name').value = p.plan_name || '';
+                document.getElementById('pay-amount').value = p.amount || '';
+                document.getElementById('pay-method').value = p.method || 'Efectivo';
+                document.getElementById('pay-date').value = (p.date || '').slice(0, 10) || new Date().toISOString().split('T')[0];
+                document.getElementById('pay-note').value = p.note || '';
+            } else {
+                document.getElementById('payment-modal-title').innerText = 'Nuevo Ingreso';
+                document.getElementById('pay-id').value = '';
+                document.getElementById('pay-member-name').value = '';
+                document.getElementById('pay-plan-name').value = '';
+                document.getElementById('pay-amount').value = '';
+                document.getElementById('pay-method').value = 'Efectivo';
+                document.getElementById('pay-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('pay-note').value = '';
+            }
+            openModal('modal-payment');
+        }
+
+        function savePayment(e) {
+            e.preventDefault();
+            const id = document.getElementById('pay-id').value;
+            const member_name = document.getElementById('pay-member-name').value.trim();
+            const plan_name = document.getElementById('pay-plan-name').value.trim();
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+            const method = document.getElementById('pay-method').value;
+            const date = document.getElementById('pay-date').value;
+            const note = document.getElementById('pay-note').value.trim();
+
+            if (id) {
+                const p = dbState.payments.find(x => x.id === id);
+                if (p) {
+                    p.member_name = member_name;
+                    p.plan_name = plan_name;
+                    p.amount = amount;
+                    p.method = method;
+                    p.date = date;
+                    p.note = note;
+                }
+            } else {
+                const newId = 'pay_' + Math.random().toString(36).substr(2, 6);
+                dbState.payments.unshift({
+                    id: newId,
+                    member_id: '',
+                    member_name,
+                    plan_id: '',
+                    plan_name,
+                    amount,
+                    method,
+                    date,
+                    note
+                });
+            }
+            closeModal('modal-payment');
+            saveState();
+            switchTab('payments');
+        }
+
+        function deletePayment(id) {
+            if (!confirm('┬┐Est├ís seguro de eliminar este registro de ingreso?')) return;
+            dbState.payments = dbState.payments.filter(p => p.id !== id);
+            saveState();
+        }
+
+        function openRenewModal(id) {
+            const m = dbState.members.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('renew-member-id').value = m.id;
+            document.getElementById('renew-member-name').value = `${m.name} (${m.dni})`;
+            updateRenewAmount();
+            openModal('modal-renew');
+        }
+
+        function updateRenewAmount() {
+            const planSel = document.getElementById('renew-plan');
+            if (planSel.selectedOptions[0]) document.getElementById('renew-amount').value = planSel.selectedOptions[0].getAttribute('data-price');
+        }
+
+        function saveRenewal(e) {
+            e.preventDefault();
+            const mId = document.getElementById('renew-member-id').value;
+            const pId = document.getElementById('renew-plan').value;
+            const m = dbState.members.find(x => x.id === mId);
+            const p = dbState.plans.find(x => x.id === pId);
+            const amt = parseFloat(document.getElementById('renew-amount').value);
+            const method = document.getElementById('renew-method').value;
+
+            if (m && p) {
+                const today = new Date();
+                const exp = new Date(today.getTime() + p.days * 86400000).toISOString().split('T')[0];
+                m.plan_id = pId; m.start_date = today.toISOString().split('T')[0]; m.expire_date = exp;
+
+                dbState.payments.unshift({
+                    id: 'pay_' + Math.random().toString(36).substr(2,6),
+                    member_id: m.id, member_name: m.name, plan_id: p.id, plan_name: p.name,
+                    amount: amt, method, date: new Date().toISOString().split('T')[0], note: 'Renovaci├│n de cuota'
+                });
+            }
+            closeModal('modal-renew');
+            saveState();
+        }
+
+        function openPlanModal(planId) {
+            if (planId) {
+                const p = dbState.plans.find(x => x.id === planId);
+                if (!p) return;
+                document.getElementById('plan-modal-title').innerText = 'Editar Plan';
+                document.getElementById('plan-id').value = p.id;
+                document.getElementById('plan-name').value = p.name;
+                document.getElementById('plan-workout-type').value = p.workout_type || '';
+                document.getElementById('plan-price').value = p.price;
+                document.getElementById('plan-days').value = p.days;
+                document.getElementById('plan-description').value = p.description || '';
+            } else {
+                document.getElementById('plan-modal-title').innerText = 'Crear Nuevo Plan';
+                document.getElementById('plan-id').value = '';
+                document.getElementById('plan-name').value = '';
+                document.getElementById('plan-workout-type').value = '';
+                document.getElementById('plan-price').value = '';
+                document.getElementById('plan-days').value = '30';
+                document.getElementById('plan-description').value = '';
+            }
+            openModal('modal-plan');
+        }
+
+        function savePlan(e) {
+            e.preventDefault();
+            const id = document.getElementById('plan-id').value;
+            const name = document.getElementById('plan-name').value.trim();
+            const workout_type = document.getElementById('plan-workout-type').value.trim();
+            const rawPrice = document.getElementById('plan-price').value;
+            const price = parseFloat(rawPrice) || 0;
+            const days = parseInt(document.getElementById('plan-days').value) || 30;
+            const description = document.getElementById('plan-description').value.trim();
+
+            if (!name || !workout_type) {
+                alert('Por favor ingresa el nombre del plan y el tipo de entrenamiento.');
+                return;
+            }
+
+            if (id) {
+                const p = dbState.plans.find(x => x.id === id);
+                if (p) {
+                    p.name = name;
+                    p.workout_type = workout_type;
+                    p.price = price;
+                    p.days = days;
+                    p.description = description;
+                }
+            } else {
+                const newId = 'p_' + Math.random().toString(36).substr(2, 6);
+                dbState.plans.push({ id: newId, name, workout_type, price, days, description });
+            }
+
+            closeModal('modal-plan');
+            saveState();
+            switchTab('plans');
+        }
+
+        function deletePlan(planId) {
+            if (!confirm('┬┐Est├ís seguro de eliminar este plan?')) return;
+            dbState.plans = dbState.plans.filter(p => p.id !== planId);
+            saveState();
+        }
+
+        let currentExpenseFilter = 'ALL';
+
+        function filterExpenses(st, btn) {
+            currentExpenseFilter = st;
+            document.querySelectorAll('#view-expenses .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        }
+
+        function openExpenseModal(expenseId) {
+            if (expenseId) {
+                const exp = dbState.expenses.find(x => x.id === expenseId);
+                if (!exp) return;
+                document.getElementById('expense-modal-title').innerText = 'Editar Gasto';
+                document.getElementById('exp-id').value = exp.id;
+                document.getElementById('exp-title').value = exp.title;
+                document.getElementById('exp-type').value = exp.type || 'FIJO';
+                document.getElementById('exp-category').value = exp.category;
+                document.getElementById('exp-amount').value = exp.amount;
+                document.getElementById('exp-date').value = exp.date;
+                document.getElementById('exp-status').value = exp.status;
+            } else {
+                document.getElementById('expense-modal-title').innerText = 'Nuevo Gasto';
+                document.getElementById('exp-id').value = '';
+                document.getElementById('exp-title').value = '';
+                document.getElementById('exp-type').value = 'FIJO';
+                document.getElementById('exp-category').value = 'Alquiler';
+                document.getElementById('exp-amount').value = '';
+                document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('exp-status').value = 'PAGADO';
+            }
+            openModal('modal-expense');
+        }
+
+        function saveExpense(e) {
+            e.preventDefault();
+            const id = document.getElementById('exp-id').value;
+            const title = document.getElementById('exp-title').value.trim();
+            const type = document.getElementById('exp-type').value;
+            const category = document.getElementById('exp-category').value;
+            const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+            const date = document.getElementById('exp-date').value;
+            const status = document.getElementById('exp-status').value;
+
+            if (!title || !amount) {
+                alert('Por favor completa el concepto y monto del gasto.');
+                return;
+            }
+
+            if (id) {
+                const exp = dbState.expenses.find(x => x.id === id);
+                if (exp) {
+                    exp.title = title;
+                    exp.type = type;
+                    exp.category = category;
+                    exp.amount = amount;
+                    exp.date = date;
+                    exp.status = status;
+                }
+            } else {
+                const newId = 'exp_' + Math.random().toString(36).substr(2, 6);
+                dbState.expenses.unshift({ id: newId, title, type, category, amount, date, status });
+            }
+
+            closeModal('modal-expense');
+            saveState();
+            switchTab('expenses');
+        }
+
+        function deleteExpense(id) {
+            if (!confirm('┬┐Est├ís seguro de eliminar este gasto?')) return;
+            dbState.expenses = dbState.expenses.filter(e => e.id !== id);
+            saveState();
+        }
+
+        function toggleExpense(id) {
+            const exp = dbState.expenses.find(x => x.id === id);
+            if (exp) { exp.status = exp.status === 'PAGADO' ? 'PENDIENTE' : 'PAGADO'; saveState(); }
+        }
+
+        window.onload = function() {
+            checkAuthSession();
+            loadUserDatabase();
+            renderAll();
+        };
+    </script>
+</body>
+</html>
